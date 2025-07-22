@@ -954,11 +954,11 @@ app.post('/achievements/edit/:id', (req, res) => {
 
 
 
-<<<<<<< HEAD
+
 // n
-=======
+
 // app.get("Student/studentDashboard", authUser, (req, res) => {
->>>>>>> 340e1cebfb182c1527fd49a61ccec23f43bdc5f5
+
 //   if (req.session.user.roles === "student") {
 //     return res.render("/Student/studentdashboard", {
 //     return res.render("Student/studentDashboard", {
