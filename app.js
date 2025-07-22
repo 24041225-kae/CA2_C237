@@ -257,23 +257,23 @@ app.get('/admin/gallery/add', async (req, res) => {
     successMsg: req.flash('successMsg')
   });
 });
-// 🧠 Route: GET /admin/students
-app.get("/admin/students", (req, res) => {
-  const sql = "SELECT * FROM students ORDER BY name ASC";
-  connection.query(sql, (err, results) => {
-    if (err) {
-      console.error("Error fetching students:", err);
-      req.flash("message", "Failed to load student list.");
-      return res.render("admin/manageStudents", { studentList: [], message: req.flash("message"), successMsg: [] });
-    }
+// // 🧠 Route: GET /admin/students
+// app.get("/admin/students", (req, res) => {
+//   const sql = "SELECT * FROM students ORDER BY name ASC";
+//   connection.query(sql, (err, results) => {
+//     if (err) {
+//       console.error("Error fetching students:", err);
+//       req.flash("message", "Failed to load student list.");
+//       return res.render("Admin/manageStudents", { studentList: [], message: req.flash("message"), successMsg: [] });
+//     }
 
-    res.render("AdminManageStudent", {
-      studentList: results,
-      message: req.flash("message"),
-      successMsg: req.flash("successMsg")
-    });
-  });
-});
+//     res.render("Admin/manageStudents", {
+//       studentList: results,
+//       message: req.flash("message"),
+//       successMsg: req.flash("successMsg")
+//     });
+//   });
+// });
 
 // 🔴 Optional: POST /admin/students/delete/:id
 app.post("/admin/students/delete/:id", (req, res) => {
@@ -891,11 +891,11 @@ app.post('/admin/achievements/add', (req, res) => {
 
   connection.query(sql, [student_id, title, description, date_awarded], (err, result) => {
     if (err) {
-      console.error('❌ Error inserting achievement:', err);
+      console.error(' Error inserting achievement:', err);
       return res.status(500).send('Database error.');
     }
 
-    // ✅ Redirect to achievements dashboard after success
+    //  Redirect to achievements dashboard after success
     res.redirect('/admin/achievements');
   });
 });
@@ -944,7 +944,7 @@ app.post('/achievements/edit/:id', (req, res) => {
 
   connection.query(updateQuery, [student_id, title, description, date_awarded, achievementId], (err, result) => {
     if (err) {
-      console.error('❌ Error updating achievement:', err);
+      console.error(' Error updating achievement:', err);
       return res.status(500).send('Database error.');
     }
 
@@ -1097,7 +1097,7 @@ app.post('/delete_schedule/:id', (req, res) => {
 
 
 // ---------- Start Server ----------
-app.listen(3000, () => {
-  console.log('🚀 Server is running on http://localhost:3000');
+app.listen(4000, () => {
+  console.log('🚀 Server is running on http://localhost:4000');
 
 });
