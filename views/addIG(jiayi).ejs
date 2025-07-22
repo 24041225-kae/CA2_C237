@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Interest Group</title>
+</head>
+<body>
+    <h1>Add New Interest Group</h1>
+    <form method="POST" action="/addIG">
+        <label>Name:</label>
+        <input type="text" name="name" required><br>
+
+        <label>Category:</label>
+        <select name="category_id">
+            <% categories.forEach(cat => { %>
+                <option value="<%= cat.id %>"><%= cat.name %></option>
+            <% }) %>
+        </select><br>
+
+        <label>Description:</label>
+        <textarea name="description" required></textarea><br>
+
+        <label>School:</label>
+        <select name="school_id">
+            <% schools.forEach(sch => { %>
+                <option value="<%= sch.id %>"><%= sch.name %></option>
+            <% }) %>
+        </select><br>
+
+        <label>Meeting Schedule:</label>
+        <input type="text" name="meeting_schedule" required><br>
+
+        <button type="submit">Add</button>
+    </form>
+</body>
+</html>

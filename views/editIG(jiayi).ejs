@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Interest Group</title>
+</head>
+<body>
+    <h1>Edit Interest Group</h1>
+    <form method="POST" action="/editIG/<%= ig.id %>">
+        <label>Name:</label>
+        <input type="text" name="name" value="<%= ig.name %>" required><br>
+
+        <label>Category:</label>
+        <select name="category_id">
+            <% categories.forEach(cat => { %>
+                <option value="<%= cat.id %>" <%= cat.id === ig.category_id ? 'selected' : '' %>><%= cat.name %></option>
+            <% }) %>
+        </select><br>
+
+        <label>Description:</label>
+        <textarea name="description"><%= ig.description %></textarea><br>
+
+        <label>School:</label>
+        <select name="school_id">
+            <% schools.forEach(sch => { %>
+                <option value="<%= sch.id %>" <%= sch.id === ig.school_id ? 'selected' : '' %>><%= sch.name %></option>
+            <% }) %>
+        </select><br>
+
+        <label>Meeting Schedule:</label>
+        <input type="text" name="meeting_schedule" value="<%= ig.meeting_schedule %>" required><br>
+
+        <button type="submit">Update</button>
+    </form>
+</body>
+</html>
