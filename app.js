@@ -5,6 +5,7 @@ const session = require('express-session');
 const flash = require("connect-flash");
 const path = require('path');
 const validator = require('validator');
+
 const app = express();
 const moment = require('moment'); // npm install moment
     const checkDiskSpace = require('check-disk-space').default;
@@ -136,136 +137,21 @@ app.post('/admin/announcements/delete/:id', (req, res) => {
   });
 });
 
-
-//SITI 
-// --- IG CATEGORIES ROUTES ---
-// View all IG categories 
-app.get('/ig_categories', (req, res) => {
-    const { name } = req.query;
-    let sql = 'SELECT * FROM ig_categories';
-    const queryParams = [];
-    let searchPerformed = false;
-
-    if (name) {
-        sql += ' WHERE name LIKE ?';
-        queryParams.push(`%${name}%`);
-        searchPerformed = true;
-    }
-
-    connection.query(sql, queryParams, (error, results) => {
-        if (error) {
-            console.error('Error fetching IG categories:', error);
-            req.flash('error', 'Error fetching IG categories: ' + error.message);
-            return res.redirect('/');
-        }
-        res.render('Admin/ManageCategories(siti)', {
-          messages : req.flash("success", ""),
-          errors: req.flash("error", ""),
-          categories:results
-        }
-          
-        );
+//Route student dashboard
+app.get('Student/studentDashboard', authUser, (req, res) => {
+  if (req.session.user.roles === 'student') {
+    return res.render('Student/studentDashboard', {
+      user: req.session.user.username,
+      successMsg: req.flash('successMsg'),
+      errorMsg: req.flash('errorMsg')
     });
+  } else {
+    req.flash('errorMsg', 'Access denied. Students only.');
+    return res.redirect('/admindashboard');
+  }
 });
 
-// Add new IG category form
-app.get('/Admin/addIgCategory', (req, res) => {
-  res.render('Admin/AddIG', {
-    messages : req.flash("success", ""),
-          errors: req.flash("error", ""),
-  }); // ✅ CORRECTED: Removed leading slash
-});
 
-// Add new IG category
-app.post('/Admin/addIgCategory', (req, res) => {
-    const { name, description } = req.body;
-    if (!name) {
-        req.flash('error', 'Category Name is required.');
-        return res.redirect('/Admin/addIgCategory');
-    }
-    const sql = 'INSERT INTO ig_categories (name, description) VALUES (?, ?)';
-    connection.query(sql, [name, description], (error, results) => {
-        if (error) {
-            console.error('Error adding IG category:', error);
-            if (error.code === 'ER_DUP_ENTRY') {
-                req.flash('error', 'Category with this name already exists.');
-                return res.redirect('/Admin/addIgCategory');
-            }
-            req.flash('error', 'Error adding IG category: ' + error.message);
-            return res.redirect('/Admin/addIgCategory');
-        }
-        req.flash('success', 'IG Category added successfully!');
-        res.redirect('/ig_categories');
-    });
-});
-
-// Get data for updating an IG category
-app.get('/Admin/updateIgCategory/edit/:id', (req, res) => {
-    const categoryId = req.params.id;
-    connection.query('SELECT * FROM ig_categories WHERE id = ?', [categoryId], (error, results) => {
-        if (error) {
-            console.error('Error fetching IG category for update:', error);
-            req.flash('error', 'Error fetching IG category: ' + error.message);
-            return res.redirect('/ig_categories');
-        }
-        if (results.length > 0) {
-            res.render('updateIgCategory', {
-                igCategory: results[0]
-            });
-        } else {
-            req.flash('error', 'IG Category not found.');
-            res.redirect('/ig_categories');
-        }
-    });
-});
-
-// Update IG category
-app.post('/Admin/updateIgCategory/edit/:id', (req, res) => {
-    const categoryId = req.params.id;
-    const { name, description } = req.body;
-    if (!name) {
-        req.flash('error', 'Category Name is required for update.');
-        return res.redirect(`/updateIgCategory/${categoryId}`);
-    }
-    const sql = 'UPDATE ig_categories SET name = ?, description = ? WHERE id = ?';
-    connection.query(sql, [name, description, categoryId], (error, results) => {
-        if (error) {
-            console.error('Error updating IG category:', error);
-            if (error.code === 'ER_DUP_ENTRY') {
-                req.flash('error', 'Category with this name already exists.');
-                return res.redirect(`/updateIgCategory/${categoryId}`);
-            }
-            req.flash('error', 'Error updating IG category: ' + error.message);
-            return res.redirect('/ig_categories');
-        }
-        if (results.affectedRows === 0) {
-            req.flash('error', 'IG Category not found or no changes made.');
-        } else {
-            req.flash('success', 'IG Category updated successfully!');
-        }
-        res.redirect('/ig_categories');
-    });
-});
-
-// Delete IG category
-app.get('/admin/manage-categories/delete/:id', (req, res) => {
-    const categoryId = req.params.id;
-
-
-    connection.query('DELETE FROM ig_categories WHERE id = ?', [categoryId], (error, results) => {
-        if (error) {
-            console.error('Error deleting IG category:', error);
-            req.flash('error', 'Error deleting IG category: ' + error.message);
-            return res.redirect('/ig_categories');
-        }
-        if (results.affectedRows === 0) {
-            req.flash('error', 'IG Category not found for deletion.');
-        } else {
-            req.flash('success', 'IG Category deleted successfully!');
-        }
-        res.redirect('/ig_categories');
-    });
-});
 
 // app.get("/admin/events", authAdmin, (req, res) => {
 //   const sqlEvents = `
@@ -432,7 +318,7 @@ app.get('/admin/gallery/add', (req, res) => {
 
 // ---------- Home ----------
 app.get('/', (req, res) => res.redirect('/login'));
-app.get('/home', (req, res) => res.render('studentdashboard'));
+app.get('/home', (req, res) => res.render('Student/studentDashboard'));
 
 // ---------- Login ----------
 app.get('/login', (req, res) => {
@@ -463,7 +349,7 @@ app.post('/login', (req, res) => {
     if (results.length > 0) {
       req.session.user = results[0];
       req.flash('successMsg', 'Login successful!');
-      return res.redirect(results[0].roles === 'admin' ? '/admin' : '/studentdashboard');
+      return res.redirect(results[0].roles === 'admin' ? '/admin' : '/studentDashboard');
     } else {
       req.flash('errorMsg', 'Invalid email or password');
       return res.redirect('/login');
@@ -742,7 +628,7 @@ app.get('/admin/manage-categories', (req, res) => {
       req.flash('error', 'Error loading categories');
       return res.render('Admin/ManageCategories', { categories: [], messages: req.flash() });
     }
-    res.render('Admin/ManageCategories(siti)', { categories: results, messages: req.flash() , errors:req.flash()});
+    res.render('Admin/ManageCategories', { categories: results, messages: req.flash() });
   });
 });
 
@@ -966,9 +852,9 @@ app.get("/admin", authAdmin, async (req, res) => {
 
 
 
-app.get("/studentdashboard", authUser, (req, res) => {
+app.get("Student/studentDashboard", authUser, (req, res) => {
   if (req.session.user.roles === "student") {
-    return res.render("studentdashboard", {
+    return res.render("Student/studentDashboard", {
       user: req.session.user.username,
       successMsg: req.flash('successMsg'),
       errorMsg: req.flash('errorMsg')
@@ -996,7 +882,7 @@ app.get("/admin/igs", authAdmin, (req, res) => {
 });
 
 // ---------- Start Server ----------
-app.listen(3000, () => {
+app.listen(4000, () => {
   console.log('🚀 Server is running on http://localhost:3000');
 
 });
