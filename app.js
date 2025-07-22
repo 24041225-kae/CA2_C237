@@ -954,19 +954,19 @@ app.post('/achievements/edit/:id', (req, res) => {
 
 
 
-app.get("Student/studentDashboard", authUser, (req, res) => {
-  if (req.session.user.roles === "student") {
-    return res.render("/Student/studentdashboard", {
-    return res.render("Student/studentDashboard", {
-      user: req.session.user.username,
-      successMsg: req.flash('successMsg'),
-      errorMsg: req.flash('errorMsg')
-    });
-  } else {
-    req.flash('errorMsg', 'Access denied. Students only.');
-    return res.redirect('/admindashboard');
-  }
-});
+// app.get("Student/studentDashboard", authUser, (req, res) => {
+//   if (req.session.user.roles === "student") {
+//     return res.render("/Student/studentdashboard", {
+//     return res.render("Student/studentDashboard", {
+//       user: req.session.user.username,
+//       successMsg: req.flash('successMsg'),
+//       errorMsg: req.flash('errorMsg')
+//     });
+//   } else {
+//     req.flash('errorMsg', 'Access denied. Students only.');
+//     return res.redirect('/admindashboard');
+//   }
+// });
 
 // ---------- Admin: Manage IGs ----------
 app.get("/admin/igs", authAdmin, (req, res) => {
@@ -985,7 +985,7 @@ app.get("/admin/igs", authAdmin, (req, res) => {
 });
 
 // ---------- Start Server ----------
-app.listen(4000, () => {
+app.listen(3000, () => {
   console.log('🚀 Server is running on http://localhost:3000');
 
 });
