@@ -954,11 +954,11 @@ app.post('/achievements/edit/:id', (req, res) => {
 
 
 
-<<<<<<< HEAD
+
 // n
-=======
+
 // app.get("Student/studentDashboard", authUser, (req, res) => {
->>>>>>> 340e1cebfb182c1527fd49a61ccec23f43bdc5f5
+
 //   if (req.session.user.roles === "student") {
 //     return res.render("/Student/studentdashboard", {
 //     return res.render("Student/studentDashboard", {
@@ -1000,7 +1000,7 @@ app.get('/meeting_schedule', (req, res) => {
     params.push(`%${searchTerm}%`);
   }
 
-  db.query(sql, params, (err, results) => {
+  connection.query(sql, params, (err, results) => {
     if (err) throw err;
     res.render('meeting_schedule', {
       schedules: results,
