@@ -46,19 +46,38 @@ connection.connect((err) => {
         return;
     }
     console.log('Connected to MySQL database');
+
+    // Create ig_categories table if not exists
+    const createIgCategoriesTable = `
+        CREATE TABLE IF NOT EXISTS ig_categories (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL UNIQUE,
+            description TEXT
+        );
+    `;
+    connection.query(createIgCategoriesTable, (err) => {
+        if (err) {
+            console.error('Error creating ig_categories table:', err.message);
+        } else {
+            console.log('ig_categories table checked/created successfully.');
+        }
+    });
 });
 
 
 app.use((req, res, next) => {
-    // dummy user
+    // dummy user 
     if (!req.session.user) {
         req.session.user = {
             id: 100, 
             username: 'Siti',
             email: 'siti@example.com',
-            role: 'user' 
+            role: 'admin' // Change to 'admin' to test admin features easily
         };
     }
+    res.locals.messages = req.flash('success');
+    res.locals.errors = req.flash('error');
+    res.locals.user = req.session.user; 
     next();
 });
 
@@ -66,11 +85,11 @@ const checkAuthenticated = (req, res, next) => {
     if (req.session.user) { 
         return next();
     }
-    res.redirect('/');
+    req.flash('error', 'Please log in to view this page.');
+    res.redirect('/'); 
 };
 
 const checkAdmin = (req, res, next) => {
-
     if (req.session.user && req.session.user.role === 'admin') {
         return next();
     }
@@ -80,7 +99,6 @@ const checkAdmin = (req, res, next) => {
 
 // --- ROUTES ---
 
-// Root route - directly redirect to members list for student view
 app.get('/', (req, res) => {
     res.redirect('/members');
 });
@@ -88,7 +106,18 @@ app.get('/', (req, res) => {
 // --- IG ROLES ROUTES ---
 // View all IG roles 
 app.get('/ig_roles', checkAuthenticated, (req, res) => {
-    connection.query('SELECT * FROM ig_roles', (error, results) => {
+    const { title } = req.query;
+    let sql = 'SELECT * FROM ig_roles';
+    const queryParams = [];
+    let searchPerformed = false;
+
+    if (title) {
+        sql += ' WHERE title LIKE ?';
+        queryParams.push(`%${title}%`);
+        searchPerformed = true;
+    }
+
+    connection.query(sql, queryParams, (error, results) => {
         if (error) {
             console.error('Error fetching IG roles:', error);
             req.flash('error', 'Error fetching IG roles: ' + error.message);
@@ -96,20 +125,15 @@ app.get('/ig_roles', checkAuthenticated, (req, res) => {
         }
         res.render('IGRolesList', { 
             igRoles: results,
-            user: req.session.user, 
-            messages: req.flash('success'),
-            errors: req.flash('error')
+            searchPerformed: searchPerformed, 
+            req: req 
         });
     });
 });
 
 // Add new IG role form 
 app.get('/addIgRole', checkAdmin, (req, res) => {
-    res.render('addIgRole', {
-        user: req.session.user,
-        messages: req.flash('success'),
-        errors: req.flash('error')
-    });
+    res.render('addIgRole');
 });
 
 // Add new IG role 
@@ -146,10 +170,7 @@ app.get('/updateIgRole/:id', checkAdmin, (req, res) => {
         }
         if (results.length > 0) {
             res.render('updateIgRole', {
-                igRole: results[0],
-                user: req.session.user,
-                messages: req.flash('success'),
-                errors: req.flash('error')
+                igRole: results[0]
             });
         } else {
             req.flash('error', 'IG Role not found.');
@@ -233,10 +254,7 @@ app.get('/members', checkAuthenticated, (req, res) => {
         }
         res.render('memberslist', { 
             members: results,
-            user: req.session.user, 
-            searchPerformed: false,
-            messages: req.flash('success'),
-            errors: req.flash('error')
+            searchPerformed: false
         });
     });
 });
@@ -250,10 +268,7 @@ app.get('/addMember', checkAdmin, (req, res) => {
             return res.redirect('/members');
         }
         res.render('addMember', {
-            roles: roles,
-            user: req.session.user,
-            messages: req.flash('success'),
-            errors: req.flash('error')
+            roles: roles
         });
     });
 });
@@ -305,10 +320,7 @@ app.get('/updateMember/:id', checkAdmin, (req, res) => {
             }
             res.render('updateMember', {
                 member: memberResults[0],
-                roles: roleResults,
-                user: req.session.user,
-                messages: req.flash('success'),
-                errors: req.flash('error')
+                roles: roleResults
             });
         });
     });
@@ -366,14 +378,17 @@ app.get('/searchMembers', checkAuthenticated, (req, res) => {
         WHERE 1=1
     `;
     const queryParams = [];
+    let searchPerformed = false;
 
     if (ig_id) {
         sql += ' AND m.ig_id LIKE ?';
         queryParams.push(`%${ig_id}%`);
+        searchPerformed = true;
     }
     if (student_name) {
-        sql += ' AND m.student_id LIKE ?';
+        sql += ' AND m.student_id LIKE ?'; 
         queryParams.push(`%${student_name}%`);
+        searchPerformed = true;
     }
 
     connection.query(sql, queryParams, (error, results) => {
@@ -384,12 +399,135 @@ app.get('/searchMembers', checkAuthenticated, (req, res) => {
         }
         res.render('memberslist', { 
             members: results,
-            user: req.session.user,
-            searchPerformed: true,
-            req: req,
-            messages: req.flash('success'),
-            errors: req.flash('error')
+            searchPerformed: searchPerformed,
+            req: req
         });
+    });
+});
+
+
+// --- IG CATEGORIES ROUTES ---
+// View all IG categories 
+app.get('/ig_categories', checkAuthenticated, (req, res) => {
+    const { name } = req.query;
+    let sql = 'SELECT * FROM ig_categories';
+    const queryParams = [];
+    let searchPerformed = false;
+
+    if (name) {
+        sql += ' WHERE name LIKE ?';
+        queryParams.push(`%${name}%`);
+        searchPerformed = true;
+    }
+
+    connection.query(sql, queryParams, (error, results) => {
+        if (error) {
+            console.error('Error fetching IG categories:', error);
+            req.flash('error', 'Error fetching IG categories: ' + error.message);
+            return res.redirect('/');
+        }
+        const viewName = req.session.user && req.session.user.role === 'admin' ? 'IGCategoriesList-Admin' : 'IGCategoriesList-User';
+        res.render(viewName, {
+            igCategories: results,
+            searchPerformed: searchPerformed,
+            req: req
+        });
+    });
+});
+
+// Add new IG category form
+app.get('/addIgCategory', checkAdmin, (req, res) => {
+    res.render('addIgCategory');
+});
+
+// Add new IG category
+app.post('/addIgCategory', checkAdmin, (req, res) => {
+    const { name, description } = req.body;
+    if (!name) {
+        req.flash('error', 'Category Name is required.');
+        return res.redirect('/addIgCategory');
+    }
+    const sql = 'INSERT INTO ig_categories (name, description) VALUES (?, ?)';
+    connection.query(sql, [name, description], (error, results) => {
+        if (error) {
+            console.error('Error adding IG category:', error);
+            if (error.code === 'ER_DUP_ENTRY') {
+                req.flash('error', 'Category with this name already exists.');
+                return res.redirect('/addIgCategory');
+            }
+            req.flash('error', 'Error adding IG category: ' + error.message);
+            return res.redirect('/ig_categories');
+        }
+        req.flash('success', 'IG Category added successfully!');
+        res.redirect('/ig_categories');
+    });
+});
+
+// Get data for updating an IG category
+app.get('/updateIgCategory/:id', checkAdmin, (req, res) => {
+    const categoryId = req.params.id;
+    connection.query('SELECT * FROM ig_categories WHERE id = ?', [categoryId], (error, results) => {
+        if (error) {
+            console.error('Error fetching IG category for update:', error);
+            req.flash('error', 'Error fetching IG category: ' + error.message);
+            return res.redirect('/ig_categories');
+        }
+        if (results.length > 0) {
+            res.render('updateIgCategory', {
+                igCategory: results[0]
+            });
+        } else {
+            req.flash('error', 'IG Category not found.');
+            res.redirect('/ig_categories');
+        }
+    });
+});
+
+// Update IG category
+app.post('/updateIgCategory/:id', checkAdmin, (req, res) => {
+    const categoryId = req.params.id;
+    const { name, description } = req.body;
+    if (!name) {
+        req.flash('error', 'Category Name is required for update.');
+        return res.redirect(`/updateIgCategory/${categoryId}`);
+    }
+    const sql = 'UPDATE ig_categories SET name = ?, description = ? WHERE id = ?';
+    connection.query(sql, [name, description, categoryId], (error, results) => {
+        if (error) {
+            console.error('Error updating IG category:', error);
+            if (error.code === 'ER_DUP_ENTRY') {
+                req.flash('error', 'Category with this name already exists.');
+                return res.redirect(`/updateIgCategory/${categoryId}`);
+            }
+            req.flash('error', 'Error updating IG category: ' + error.message);
+            return res.redirect('/ig_categories');
+        }
+        if (results.affectedRows === 0) {
+            req.flash('error', 'IG Category not found or no changes made.');
+        } else {
+            req.flash('success', 'IG Category updated successfully!');
+        }
+        res.redirect('/ig_categories');
+    });
+});
+
+// Delete IG category
+app.get('/deleteIgCategory/:id', checkAdmin, (req, res) => {
+    const categoryId = req.params.id;
+
+
+    connection.query('DELETE FROM ig_categories WHERE id = ?', [categoryId], (error, results) => {
+        if (error) {
+            console.error('Error deleting IG category:', error);
+            req.flash('error', 'Error deleting IG category: ' + error.message);
+            return res.redirect('/ig_categories');
+        }
+        if (results.affectedRows === 0) {
+            req.flash('error', 'IG Category not found for deletion.');
+        } else {
+            req.flash('success', 'IG Category deleted successfully!');
+        }
+        res.redirect('/ig_categories');
     });
 });
 
