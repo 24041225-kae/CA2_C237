@@ -40,7 +40,7 @@
   </style>
 </head>
 <body>
-
+<%- include('partials/Admin/admin-navbar') %>
   <div class="form-container">
     <h2>Edit Event</h2>
     <form action="/admin/events/edit/<%= event.id %>" method="POST">

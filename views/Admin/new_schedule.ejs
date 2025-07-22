@@ -4,6 +4,7 @@
     <title>Create New Schedule</title>
 </head>
 <body>
+<%- include('partials/Admin/admin-navbar') %>
     <h1>➕ Create New Interest Group Schedule</h1>
 
     <% if (errors.length > 0) { %>
@@ -27,6 +28,7 @@
     </form>
 
     <br><a href="/meeting_schedule">← Back</a>
+<%- include('partials/Admin/admin-footer') %>
 </body>
 </html>
 

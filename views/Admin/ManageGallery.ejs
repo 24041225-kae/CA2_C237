@@ -28,7 +28,7 @@
   </style>
 </head>
 <body>
-
+<%- include('partials/Admin/admin-navbar') %>
 <header class="header">
   <h1>Manage Gallery</h1>
   <p>View, comment, and delete submitted gallery images.</p>
@@ -141,5 +141,6 @@ function postComment(event, id) {
   });
 }
 </script>
+<%- include('partials/Admin/admin-footer') %>
 </body>
 </html>
