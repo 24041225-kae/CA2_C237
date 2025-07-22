@@ -1028,7 +1028,7 @@ app.post('/schedule/new', (req, res) => {
     return res.redirect('/schedule/new');
   }
 
-  db.query(
+  connection.query(
     'INSERT INTO schedules (name, meeting_schedule, advisor) VALUES (?, ?, ?)',
     [name, meeting_schedule, advisor],
     (err) => {
