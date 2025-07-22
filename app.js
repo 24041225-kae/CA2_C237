@@ -635,7 +635,7 @@ app.get('/admin/manage-categories', (req, res) => {
       req.flash('error', 'Error loading categories');
       return res.render('Admin/ManageCategories', { categories: [], messages: req.flash() });
     }
-    res.render('Admin/ManageCategories', { categories: results, messages: req.flash() });
+    res.render('Admin/ManageCategories(siti)', { categories: results, messages: req.flash(), errors:req.flash() });
   });
 });
 
@@ -988,7 +988,7 @@ app.get("/admin/igs", authAdmin, (req, res) => {
   });
 });
 
-// Display all schedules with optional search
+// Display all schedules with optional searchc
 app.get('/meeting_schedule', (req, res) => {
   const searchTerm = req.query.search || '';
 
@@ -1002,7 +1002,7 @@ app.get('/meeting_schedule', (req, res) => {
 
   connection.query(sql, params, (err, results) => {
     if (err) throw err;
-    res.render('meeting_schedule', {
+    res.render('Admin/meeting_schedule', {
       schedules: results,
       success: req.flash('success'),
       errors: req.flash('error'),
@@ -1013,7 +1013,7 @@ app.get('/meeting_schedule', (req, res) => {
 
 // Show form to create new schedule
 app.get('/schedule/new', (req, res) => {
-  res.render('new_schedule', {
+  res.render('Admin/new_schedule', {
     errors: req.flash('error'),
     success: req.flash('success')
   });
@@ -1050,7 +1050,7 @@ app.get('/edit_schedule/:id', (req, res) => {
       return res.redirect('/meeting_schedule');
     }
 
-    res.render('edit_schedule', {
+    res.render('Admin/edit_schedule', {
       ig: results[0],
       errors: req.flash('error'),
       success: req.flash('success')
