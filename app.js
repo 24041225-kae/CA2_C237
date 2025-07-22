@@ -8,6 +8,7 @@ const validator = require('validator');
 const app = express();
 const moment = require('moment'); // npm install moment
     const checkDiskSpace = require('check-disk-space').default;
+app.use(express.urlencoded({ extended: true }));
 
 // MySQL Setup
 const connection = mysql.createConnection({
@@ -40,7 +41,6 @@ app.use(session({
 }));
 app.use(flash());
 app.set('view engine', 'ejs');
-app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('public'));
 
@@ -320,26 +320,25 @@ app.get('/admin/manage-categories/delete/:id', (req, res) => {
 //     res.render("ManageEventsAdmin", { eventList: results });
 //   });
 // });
-app.get('/admin/gallery', async (req, res) => {
-  try {
-    const [gallery] = await connection.promise().query(`
-      SELECT g.id, g.title, g.media_url, g.created_at, s.name AS student_name, ig.name AS ig_name
-      FROM galleries g
-      JOIN students s ON g.student_id = s.id
-      JOIN interest_groups ig ON g.ig_id = ig.id
-      ORDER BY g.created_at DESC
-    `);
-
+app.get('/admin/gallery', (req, res) => {
+  const query = `
+    SELECT g.*, s.name AS student_name, ig.name AS ig_name 
+    FROM galleries g 
+    JOIN students s ON g.student_id = s.id 
+    JOIN interest_groups ig ON g.ig_id = ig.id 
+    ORDER BY g.created_at DESC
+  `;
+  connection.query(query, (err, results) => {
+    if (err) {
+      req.flash('message', 'Error loading gallery.');
+      return res.redirect('/admin');
+    }
     res.render('Admin/ManageGallery', {
-      galleryList: gallery,
+      galleryList: results,
       message: req.flash('message'),
-      successMsg: req.flash('successMsg'),
+      successMsg: req.flash('successMsg')
     });
-  } catch (err) {
-    console.error(err);
-    req.flash('message', 'Failed to fetch gallery items.');
-    res.redirect('/admindashboard');
-  }
+  });
 });
 
 
@@ -403,24 +402,32 @@ app.post("/admin/students/delete/:id", (req, res) => {
     res.redirect("/admin/students");
   });
 });
+app.post('/admin/gallery/add', upload.single('media'), (req, res) => {
+  const { title, caption, student_id, ig_id } = req.body;
+  const media_url = req.file ? '/uploads/' + req.file.filename : null;
 
-// POST Add Gallery logic
-app.post('/admin/gallery/add', async (req, res) => {
-  const { title, media_url, student_id, ig_id } = req.body;
-  try {
-    const sql = `
-      INSERT INTO galleries (title, media_url, student_id, ig_id, created_at)
-      VALUES (?, ?, ?, ?, NOW())
-    `;
-    await connection.promise().query(sql, [title, media_url, student_id, ig_id]);
-    req.flash('successMsg', 'Gallery image uploaded successfully.');
-    res.redirect('/admin/gallery');
-  } catch (err) {
-    console.error(err);
-    req.flash('message', 'Upload failed.');
-    res.redirect('/admin/gallery/add');
+  if (!title || !caption || !student_id || !ig_id || !media_url) {
+    req.flash('message', 'All fields are required.');
+    return res.redirect('/admin/gallery');
   }
+
+  const query = `
+    INSERT INTO galleries (title, caption, media_url, upload_date, created_at, student_id, ig_id)
+    VALUES (?, ?, ?, NOW(), NOW(), ?, ?)
+  `;
+
+  connection.query(query, [title, caption, media_url, student_id, ig_id], (err, result) => {
+    if (err) {
+      console.error(err);
+      req.flash('message', 'Error adding gallery entry.');
+      return res.redirect('/admin/gallery');
+    }
+    req.flash('successMsg', 'Gallery added successfully.');
+    res.redirect('/admin/gallery');
+  });
 });
+
+
 app.get('/admin/gallery/add', (req, res) => {
   const userId = req.session.user?.id || 1; // fallback for now
   connection.query('SELECT id, name FROM interest_groups', (err, igs) => {
@@ -964,11 +971,106 @@ app.get("/admin", authAdmin, async (req, res) => {
 //   }
 // });
 
+app.get('/admin/achievements', (req, res) => {
+  const sql = `
+    SELECT sa.*, s.name AS student_name
+    FROM student_achievements sa
+    JOIN students s ON sa.student_id = s.id
+    ORDER BY sa.date_awarded DESC
+  `;
+
+  connection.query(sql, (err, results) => {
+    if (err) {
+      console.error('MySQL Error:', err);
+      return res.status(500).send('Database error');
+    }
+
+    res.render('Admin/manageAchievements', { achievements: results });
+  });
+});
+app.get('/admin/achievements/add', (req, res) => {
+  connection.query('SELECT id, name FROM students', (err, students) => {
+    if (err) return res.status(500).send('Database error.');
+    res.render('Admin/addAchievement', { students });
+  });
+});
+
+app.post('/admin/achievements/add', (req, res) => {
+  const { student_id, title, description, date_awarded } = req.body;
+
+  const sql = `
+    INSERT INTO student_achievements (student_id, title, description, date_awarded)
+    VALUES (?, ?, ?, ?)
+  `;
+
+  connection.query(sql, [student_id, title, description, date_awarded], (err, result) => {
+    if (err) {
+      console.error('❌ Error inserting achievement:', err);
+      return res.status(500).send('Database error.');
+    }
+
+    // ✅ Redirect to achievements dashboard after success
+    res.redirect('/admin/achievements');
+  });
+});
+
+
+app.get('/admin/achievements/edit/:id', (req, res) => {
+  const achievementId = req.params.id;
+
+  const getAchievement = `
+    SELECT * FROM student_achievements WHERE id = ?
+  `;
+  const getStudents = `
+    SELECT id, name FROM students
+  `;
+
+  connection.query(getAchievement, [achievementId], (err, achievementResults) => {
+    if (err || achievementResults.length === 0) {
+      req.flash('error', 'Achievement not found.');
+      return res.redirect('/admin/achievements');
+    }
+
+    const achievement = achievementResults[0];
+
+    connection.query(getStudents, (err2, students) => {
+      if (err2) {
+        req.flash('error', 'Failed to fetch student list.');
+        return res.redirect('/admin/achievements');
+      }
+
+      res.render('Admin/editAchievement', { achievement, students });
+    });
+  });
+});
+
+
+
+app.post('/achievements/edit/:id', (req, res) => {
+  const achievementId = req.params.id;
+  const { student_id, title, description, date_awarded } = req.body;
+
+  const updateQuery = `
+    UPDATE student_achievements
+    SET student_id = ?, title = ?, description = ?, date_awarded = ?
+    WHERE id = ?
+  `;
+
+  connection.query(updateQuery, [student_id, title, description, date_awarded, achievementId], (err, result) => {
+    if (err) {
+      console.error('❌ Error updating achievement:', err);
+      return res.status(500).send('Database error.');
+    }
+
+    res.redirect('/admin/achievements');
+  });
+});
+
 
 
 app.get("/studentdashboard", authUser, (req, res) => {
   if (req.session.user.roles === "student") {
-    return res.render("studentdashboard", {
+    return res.render("/Student/studentdashboard", {
       user: req.session.user.username,
       successMsg: req.flash('successMsg'),
       errorMsg: req.flash('errorMsg')

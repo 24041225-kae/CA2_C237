@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Manage Achievements | IGConnect Admin</title>
+</head>
+<body>
+
+  <div class="container mt-5">
+    <h2 class="mb-4 text-center">🎓 Manage Student Achievements</h2>
+
+    <div class="text-end mb-3">
+      <a href="/admin/achievements/add" class="btn btn-success">+ Add Achievement</a>
+    </div>
+
+    <table class="table table-bordered table-hover shadow-sm">
+      <thead class="table-dark">
+        <tr>
+          <th>Student Name</th>
+          <th>Title</th>
+          <th>Description</th>
+          <th>Date Awarded</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (achievements.length === 0) { %>
+          <tr>
+            <td colspan="5" class="text-center text-muted">No achievements found.</td>
+          </tr>
+        <% } else { %>
+          <% achievements.forEach(a => { %>
+            <tr>
+              <td><%= a.student_name %></td>
+              <td><%= a.title %></td>
+              <td><%= a.description %></td>
+              <td><%= a.date_awarded.toISOString().split('T')[0] %></td>
+              <td>
+                <a href="/admin/achievements/edit/<%= a.id %>" class="btn btn-sm btn-warning">Edit</a>
+                <form action="/admin/achievements/delete/<%= a.id %>" method="POST" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this achievement?')">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+</body>
+</html>
