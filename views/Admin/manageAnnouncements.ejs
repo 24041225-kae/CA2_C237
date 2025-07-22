@@ -41,12 +41,18 @@
       color: #333;
     }
 
-    .announcement-content {
+    .announcement-message {
       color: #555;
+      margin-top: 10px;
+      margin-bottom: 8px;
     }
 
     .btn-action {
       margin-right: 5px;
+    }
+
+    .text-muted {
+      font-size: 0.9rem;
     }
   </style>
 </head>
@@ -74,12 +80,12 @@
         <p>Click “Add New” to post the first announcement.</p>
       </div>
     <% } else { %>
-      <% announcements.forEach((item, index) => { %>
+      <% announcements.forEach((item) => { %>
         <div class="announcement-box mb-4">
           <div class="d-flex justify-content-between align-items-start">
-            <div>
+            <div class="me-3">
               <h5 class="announcement-title"><%= item.title %></h5>
-              <p class="announcement-content"><%= item.content %></p>
+              <p class="announcement-message"><%= item.message %></p>
               <small class="text-muted">Posted on: <%= new Date(item.created_at).toLocaleString() %></small>
             </div>
             <div>

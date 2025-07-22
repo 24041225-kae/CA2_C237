@@ -8,106 +8,158 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
     body {
-      background-color: #f4f7fa;
+      background-color: #f9fafc;
       font-family: 'Segoe UI', sans-serif;
     }
-    .header {
-      background: linear-gradient(to right, #f39c12, #f1c40f);
+    .hero-image {
+      background: url('/img/gallery-hero.jpg') no-repeat center center;
+      background-size: cover;
+      position: relative;
+      height: 280px;
       color: white;
-      padding: 60px 20px;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .header h1 { font-size: 2.5rem; font-weight: 700; }
-    .gallery-img { height: 80px; width: 80px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; }
-    .btn-action { margin: 0 2px; }
-    .table thead { background-color: #f39c12; color: white; }
-    .btn-warning { background-color: #f39c12; border: none; }
-    .btn-warning:hover { background-color: #e69500; }
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-    .comment-box { font-size: 0.95rem; margin-top: 5px; }
+    .hero-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.35);
+    }
+    .hero-content {
+      position: relative;
+      text-align: center;
+      z-index: 1;
+    }
+    .hero-content h1 {
+      font-size: 2.75rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .card-text {
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .gallery-img {
+      height: 200px;
+      object-fit: cover;
+    }
+    .comment-box {
+      font-size: 0.85rem;
+      background: #f8f9fa;
+      border-top: 1px solid #ddd;
+      padding: 10px;
+    }
+    .comments-container {
+      max-height: 100px;
+      overflow-y: auto;
+    }
+    .comment-entry {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 5px;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+    }
+    .top-bar input.form-control {
+  min-width: 200px;
+}
+@media (max-width: 767px) {
+  .btn-warning {
+    width: 100%;
+  }
+}
+
   </style>
 </head>
 <body>
 
-<header class="header">
-  <h1>Manage Gallery</h1>
-  <p>View, comment, and delete submitted gallery images.</p>
-</header>
+<!-- 🔶 Hero Section -->
+<div class="hero-image">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1>Manage Gallery</h1>
+    <p class="lead">View, comment, and manage submitted gallery media.</p>
+  </div>
+</div>
 
 <div class="container py-4">
 
-  <div class="top-bar">
-    <h4 class="fw-bold">Gallery Submissions</h4>
-    <a href="/admin/gallery/add" class="btn btn-warning">
-      <i class="fas fa-plus me-1"></i> Add New Gallery
-    </a>
+<div class="row align-items-center mb-4">
+  <div class="col-12 col-md-6">
+    <h4 class="fw-bold mb-3 mb-md-0">Gallery Submissions</h4>
   </div>
+  <div class="col-12 col-md-6">
+    <div class="d-flex flex-column flex-md-row gap-2 w-100">
+      <input id="searchInput" type="text" class="form-control flex-fill" placeholder="Search by title or IG name..." />
+      <a href="/admin/gallery/add" class="btn btn-warning">
+        <i class="fas fa-plus me-1"></i> Add New Gallery
+      </a>
+    </div>
+  </div>
+</div>
+
 
   <% if (message && message.length > 0) { %>
     <div class="alert alert-warning"><%= message %></div>
   <% } %>
-
   <% if (successMsg && successMsg.length > 0) { %>
     <div class="alert alert-success"><%= successMsg %></div>
   <% } %>
 
-  <div class="gallery-box">
-    <table class="table table-hover align-middle">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Media</th>
-          <th>Title</th>
-          <th>Uploader</th>
-          <th>IG</th>
-          <th>Uploaded At</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (!galleryList || galleryList.length === 0) { %>
-          <tr><td colspan="7" class="text-center text-muted">No gallery entries found.</td></tr>
-        <% } else { %>
-          <% galleryList.forEach((g, index) => { %>
-            <tr>
-              <td><%= index + 1 %></td>
-              <td>
-                <% if (g.media_url.endsWith('.mp4')) { %>
-                  <video src="<%= g.media_url %>" class="gallery-img" controls></video>
-                <% } else { %>
-                  <img src="<%= g.media_url %>" class="gallery-img" alt="Gallery Media"/>
-                <% } %>
-              </td>
-              <td><%= g.title %></td>
-              <td><%= g.student_name %></td>
-              <td><%= g.ig_name %></td>
-              <td><%= new Date(g.upload_date || g.created_at).toLocaleDateString('en-SG') %></td>
-              <td>
-                <a href="/admin/gallery/edit/<%= g.id %>" class="btn btn-sm btn-primary btn-action"><i class="fas fa-edit"></i></a>
-                <form action="/admin/gallery/delete/<%= g.id %>" method="POST" class="d-inline">
-                  <button type="submit" class="btn btn-sm btn-danger btn-action" onclick="return confirm('Are you sure?');"><i class="fas fa-trash"></i></button>
-                </form>
-              </td>
-            </tr>
-            <tr>
-              <td colspan="7">
-                <!-- Load Comments -->
-                <div class="comment-box" id="comments-<%= g.id %>">
-                  <button class="btn btn-sm btn-outline-secondary mb-2" onclick="loadComments('<%= g.id %>')">Load Comments</button>
-                  <div class="comments-container"></div>
+  <div class="row g-4" id="galleryContainer">
+    <% if (!galleryList || galleryList.length === 0) { %>
+      <div class="col-12 text-center text-muted">No gallery entries found.</div>
+    <% } else { %>
+      <% galleryList.forEach((g, index) => { %>
+        <div class="col-sm-12 col-md-6 col-lg-4 col-xl-3 gallery-card" data-title="<%= g.title.toLowerCase() %>" data-ig="<%= g.ig_name.toLowerCase() %>">
+          <div class="card h-100 shadow-sm">
+            <% if (g.media_url.endsWith('.mp4')) { %>
+              <video src="<%= g.media_url %>" class="card-img-top gallery-img" controls></video>
+            <% } else { %>
+              <img src="<%= g.media_url %>" class="card-img-top gallery-img" alt="Gallery Media"/>
+            <% } %>
+            <div class="card-body">
+              <h5 class="card-title"><%= g.title %></h5>
+              <p class="card-text mb-1"><i class="fas fa-user"></i> <%= g.student_name %></p>
+              <p class="card-text mb-1"><i class="fas fa-people-group"></i> <%= g.ig_name %></p>
+              <p class="card-text"><i class="fas fa-calendar-alt"></i> <%= new Date(g.upload_date || g.created_at).toLocaleDateString('en-SG') %></p>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+              <a href="/admin/gallery/edit/<%= g.id %>" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
+              <form action="/admin/gallery/delete/<%= g.id %>" method="POST" onsubmit="return confirm('Are you sure?');">
+                <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+            <div class="comment-box" id="comments-<%= g.id %>">
+              <button class="btn btn-sm btn-outline-secondary mb-2" onclick="loadComments('<%= g.id %>')">💬 Load Comments</button>
+              <div class="comments-container"></div>
+              <form onsubmit="postComment(event, '<%= g.id %>')">
+  <textarea class="form-control mb-2" name="comment" required></textarea>
+  <button class="btn btn-sm btn-primary w-100">Post</button>
+</form>
 
-                  <!-- Add Comment -->
-                  <form onsubmit="postComment(event, '<%= g.id %>')">
-                    <textarea class="form-control mb-2" name="comment" placeholder="Add a comment..." required></textarea>
-                    <button class="btn btn-sm btn-primary">Post</button>
-                  </form>
-                </div>
-              </td>
-            </tr>
-          <% }) %>
-        <% } %>
-      </tbody>
-    </table>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+
+  <div id="noResults" class="text-center text-muted mt-4" style="display: none;">
+    <i class="fas fa-search"></i> No matching gallery found.
   </div>
 </div>
 
@@ -118,7 +170,10 @@ function loadComments(id) {
     .then(data => {
       const box = document.querySelector(`#comments-${id} .comments-container`);
       box.innerHTML = data.length ? data.map(c => `
-        <div><strong>${c.student_name}</strong><br>${c.comment}<br><small>${new Date(c.created_at).toLocaleString()}</small><hr></div>
+        <div class="comment-entry">
+          <strong>${c.student_name}</strong><br>${c.comment}<br>
+          <small class="text-muted">${new Date(c.created_at).toLocaleString()}</small>
+        </div>
       `).join('') : '<p class="text-muted">No comments yet.</p>';
     });
 }
@@ -127,19 +182,40 @@ function postComment(event, id) {
   event.preventDefault();
   const form = event.target;
   const data = new URLSearchParams(new FormData(form));
+
   fetch(`/gallery/${id}/comment`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
     body: data
   }).then(res => {
     if (res.ok) {
       form.reset();
       loadComments(id);
     } else {
+      console.error('❌ Comment failed:', res.status);
       alert('Failed to post comment');
     }
+  }).catch(err => {
+    console.error('❌ Network error:', err);
   });
 }
+
+
+document.getElementById("searchInput").addEventListener("input", function () {
+  const keyword = this.value.toLowerCase();
+  let anyVisible = false;
+  document.querySelectorAll(".gallery-card").forEach(card => {
+    const title = card.dataset.title;
+    const ig = card.dataset.ig;
+    const match = title.includes(keyword) || ig.includes(keyword);
+    card.style.display = match ? "block" : "none";
+    if (match) anyVisible = true;
+  });
+  document.getElementById("noResults").style.display = anyVisible ? "none" : "block";
+});
 </script>
+
 </body>
 </html>

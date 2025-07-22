@@ -15,7 +15,7 @@
     <div style="color: red;"><%= errors[0] %></div>
   <% } %>
 
-  <form method="POST" action="/edit_schedule/<%= ig.id %>">
+  <form method="POST" action="admin/edit_schedule/<%= ig.id %>">
     <label>Interest Group Name:</label><br />
     <input type="text" name="name" value="<%= ig.name %>" required /><br /><br />
 
@@ -35,6 +35,6 @@
   </form>
 
   <br />
-  <a href="/meeting_schedule">Back to Schedule List</a>
+  <a href="admin/meeting_schedule">Back to Schedule List</a>
 </body>
 </html>

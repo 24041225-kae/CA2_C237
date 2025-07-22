@@ -11,19 +11,21 @@
 
   <style>
     body {
-      background-color: #f4f7fa;
+      background-color: #f0f2f5;
       font-family: 'Segoe UI', sans-serif;
     }
 
- .events-header {
-  background: linear-gradient(to right, rgba(30,30,30,0.7), rgba(0,0,0,0.7)),
-              url('/Images/AddIG.jpg') no-repeat center center;
-  background-size: cover;
-  color: white;
-  padding: 80px 20px;
-  text-align: center;
-}
-
+    .events-header {
+      background: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.6)),
+                  url('/Images/AddIG.jpg') no-repeat center center;
+      background-size: cover;
+      color: white;
+      padding: 80px 20px;
+      text-align: center;
+      border-bottom-left-radius: 40px;
+      border-bottom-right-radius: 40px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
 
     .events-header h1 {
       font-size: 2.8rem;
@@ -35,94 +37,110 @@
       font-weight: 300;
     }
 
-    .module-box {
+    .card-container {
+      max-width: 1300px;
+      margin: -40px auto 60px;
+      padding: 30px;
       background: white;
-      border-radius: 10px;
-      padding: 25px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      border-radius: 20px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
     }
 
-    .events-table th {
-      background-color: #0d6efd;
-      color: white;
+    .card-event {
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease;
     }
 
-    .btn-action {
-      margin: 0 3px;
+    .card-event:hover {
+      transform: translateY(-5px);
+    }
+
+    .card-title {
+      font-weight: 600;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+    }
+
+    .empty-state i {
+      color: #aaa;
+    }
+
+    @media (max-width: 768px) {
+      .events-header h1 { font-size: 2rem; }
+      .events-header p { font-size: 1rem; }
     }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
+
+<!-- Navbar -->
 <%- include('../partials/Admin/admin-navbar') %>
 
-  <!-- Header Section -->
-  <header class="events-header">
-    <h1>Manage Events</h1>
-    <p>View, update, or delete scheduled student events</p>
-  </header>
+<!-- Header -->
+<header class="events-header">
+  <h1>Manage Events</h1>
+  <p>View, update, or delete scheduled student events</p>
+</header>
 
-  <!-- Page Content -->
+<!-- Card Container -->
+<div class="card-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">Upcoming & Past Events</h4>
+    <a href="/admin/events/add" class="btn btn-primary shadow-sm">
+      <i class="fas fa-calendar-plus me-1"></i> Add New Event
+    </a>
+  </div>
 
-
-    <div class="module-box">
-      <h1>Upcoming & Past Events</h1>
-      <% if (eventList.length === 0) { %>
-        <div class="text-center my-5 mt-5">
-  <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
-  <h4 class="fw-semibold text-muted">No Events Scheduled Yet</h4>
-  <p class="text-muted">Looks like you haven’t added any student events.</p>
-  <a href="/admin/events/add" class="btn btn-outline-primary mt-3">
-    <i class="fas fa-plus-circle me-1"></i> Create Your First Event
-  </a>
-</div>
-
-      <% } else { %>
-          <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4 class="fw-bold">Upcoming & Past Events</h4>
-      <a href="/admin/events/add" class="btn btn-primary">
-        <i class="fas fa-calendar-plus me-1"></i> Add New Event
+  <% if (eventList.length === 0) { %>
+    <div class="text-center my-5 empty-state">
+      <i class="fas fa-calendar-times fa-4x mb-4"></i>
+      <h5 class="fw-semibold text-muted">No Events Scheduled Yet</h5>
+      <p class="text-muted">Looks like you haven’t added any student events.</p>
+      <a href="/admin/events/add" class="btn btn-outline-primary mt-3">
+        <i class="fas fa-plus-circle me-1"></i> Create Your First Event
       </a>
     </div>
-        <table class="table table-hover events-table align-middle">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Event Name</th>
-              <th>Date</th>
-              <th>Location</th>
-              <th>Organised By</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% eventList.forEach((event, index) => { %>
-              <tr>
-                <td><%= index + 1 %></td>
-                <td><%= event.name %></td>
-                <td><%= event.date %></td>
-                <td><%= event.location %></td>
-                <td><%= event.ig_name %></td>
-                <td>
-                  <a href="/admin/events/edit/<%= event.id %>" class="btn btn-sm btn-primary btn-action">
-                    <i class="fas fa-edit"></i>
-                  </a>
-                  <form action="/admin/events/delete/<%= event.id %>" method="POST" class="d-inline">
-                    <button type="submit" class="btn btn-sm btn-danger btn-action" onclick="return confirm('Are you sure you want to delete this event?');">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </form>
-                </td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
-      <% } %>
+  <% } else { %>
+   <div class="row">
+  <% eventList.forEach((event, index) => { %>
+    <div class="col-12 col-md-6 col-lg-3 d-flex">
+
+      <div class="card card-event w-100 shadow-sm border-0">
+            <div class="card-body d-flex flex-column">
+              <!-- Title + Date -->
+              <div class="mb-2">
+                <h5 class="card-title mb-1"><%= event.name %></h5>
+<span class="badge bg-secondary"><%= moment(event.date).format("ddd, MMM D YYYY") %></span>
+              </div>
+
+              <!-- Meta Info -->
+              <p class="mb-1"><i class="fas fa-map-marker-alt me-2 text-primary"></i><%= event.location %></p>
+              <p class="mb-3"><i class="fas fa-users me-2 text-success"></i><strong><%= event.ig_name %></strong></p>
+
+              <!-- Actions -->
+              <div class="mt-auto d-flex justify-content-between">
+                <a href="/admin/events/edit/<%= event.id %>" class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-edit me-1"></i>Edit
+                </a>
+                <form action="/admin/events/delete/<%= event.id %>" method="POST">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this event?');">
+                    <i class="fas fa-trash me-1"></i>Delete
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }) %>
     </div>
-  </div>
+  <% } %>
+</div>
+
 <%- include('../partials/Admin/admin-footer') %>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
