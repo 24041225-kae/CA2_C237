@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Edit Schedule</title>
+</head>
+<body>
+<%- include('partials/Admin/admin-navbar') %>
+  <h1>Edit Schedule</h1>
+
+  <% if (success && success.length > 0) { %>
+    <div style="color: green;"><%= success[0] %></div>
+  <% } %>
+
+  <% if (errors && errors.length > 0) { %>
+    <div style="color: red;"><%= errors[0] %></div>
+  <% } %>
+
+  <form method="POST" action="admin/edit_schedule/<%= ig.id %>">
+    <label>Interest Group Name:</label><br />
+    <input type="text" name="name" value="<%= ig.name %>" required /><br /><br />
+
+    <label>Meeting Schedule:</label><br />
+    <!-- Use datetime-local input, format date to yyyy-MM-ddTHH:mm -->
+    <input 
+      type="datetime-local" 
+      name="meeting_schedule" 
+      value="<%= new Date(ig.meeting_schedule).toISOString().slice(0,16) %>" 
+      required 
+    /><br /><br />
+
+    <label>Advisor:</label><br />
+    <input type="text" name="advisor" value="<%= ig.advisor %>" required /><br /><br />
+
+    <button type="submit">Update Schedule</button>
+  </form>
+
+  <br />
+  <a href="admin/meeting_schedule">Back to Schedule List</a>
+</body>
+</html>

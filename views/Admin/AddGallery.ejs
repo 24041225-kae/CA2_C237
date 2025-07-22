@@ -13,64 +13,73 @@
     html, body {
       height: 100%;
       margin: 0;
-    }
-
-    body {
       font-family: 'Segoe UI', sans-serif;
-      background: url('/Images/AddIG.jpg') no-repeat center center fixed;
-      background-size: cover;
-      position: relative;
+      background: linear-gradient(to right, #fefcea, #f1da36);
     }
 
-    .background-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.6);
-      z-index: 0;
-    }
-
-    .content-wrapper {
-      position: relative;
-      z-index: 1;
-    }
-
-    .form-container {
-      max-width: 650px;
-      margin: auto;
-      background-color: rgba(255, 255, 255, 0.92);
-      border-radius: 15px;
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
       padding: 30px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      max-width: 720px;
+      margin: auto;
     }
 
     .heading-title {
-      color: #ffffff;
-      text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.9);
+      color: #333;
+      font-weight: 700;
+    }
+
+    .form-label i {
+      margin-right: 6px;
+      color: #f39c12;
     }
 
     .btn-custom {
       background-color: #f39c12;
       color: white;
+      border: none;
     }
 
     .btn-custom:hover {
-      background-color: #e08e0b;
+      background-color: #d68910;
     }
 
     .alert {
-      max-width: 650px;
-      margin: 10px auto;
+      max-width: 720px;
+      margin: 20px auto;
+    }
+
+    .glass-header {
+      text-align: center;
+      padding: 60px 20px 20px;
+    }
+
+    .glass-header p {
+      color: #444;
     }
   </style>
 </head>
 <body>
-  <!-- Background Overlay -->
-  <div class="background-overlay"></div>
 
+<<<<<<< HEAD
+  <!-- Header -->
+  <div class="glass-header">
+    <h1 class="display-5 heading-title"><i class="fas fa-images me-2"></i>Add a New Gallery Image</h1>
+    <p class="lead">Upload your gallery photo and assign it to a student and IG.</p>
+  </div>
+
+  <!-- Flash Messages -->
+  <% if (message.length > 0) { %>
+    <div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i><%= message %></div>
+  <% } %>
+  <% if (successMsg.length > 0) { %>
+    <div class="alert alert-success"><i class="fas fa-check-circle me-2"></i><%= successMsg %></div>
+  <% } %>
+=======
   <!-- Navbar -->
-  <%- include('../partials/admin-navbar') %>
-
+<%- include('partials/Admin/admin-navbar') %>
   <!-- Main Content -->
   <div class="container my-5 content-wrapper">
     <!-- Heading -->
@@ -78,61 +87,57 @@
       <h1 class="display-5 fw-bold heading-title">Add a New Gallery Image</h1>
       <p class="lead text-white">Upload photos and organize them by Interest Group</p>
     </div>
+>>>>>>> 0dd37e08ecd83a9669a31af625ab9ece5cf60b63
 
-    <!-- Flash Messages -->
-    <% if (message.length > 0) { %>
-      <div class="alert alert-warning"><%= message %></div>
-    <% } %>
-    <% if (successMsg.length > 0) { %>
-      <div class="alert alert-success"><%= successMsg %></div>
-    <% } %>
+  <!-- Form Card -->
+  <div class="glass-card my-4">
+    <form action="/admin/gallery/add" method="POST" enctype="multipart/form-data">
+      <div class="mb-3">
+        <label for="title" class="form-label"><i class="fas fa-heading"></i>Image Title</label>
+        <input type="text" class="form-control" name="title" id="title" placeholder="Enter image title" required>
+      </div>
 
-    <!-- Form Card -->
-    <div class="form-container">
-      <form action="/admin/gallery/add" method="POST">
-        <div class="mb-3">
-          <label for="title" class="form-label">Image Title</label>
-          <input type="text" class="form-control" name="title" id="title" placeholder="Enter image title" required>
-        </div>
+      <div class="mb-3">
+        <label for="media" class="form-label"><i class="fas fa-file-image"></i>Media File (Image or Video)</label>
+        <input type="file" class="form-control" name="media" id="media" required>
+      </div>
 
-        <div class="mb-3">
-          <label for="image_url" class="form-label">Image URL</label>
-          <input type="text" class="form-control" name="image_url" id="image_url" placeholder="Paste image URL here" required>
-        </div>
+      <div class="mb-3">
+        <label for="student_id" class="form-label"><i class="fas fa-user-graduate"></i>Uploader (Student)</label>
+        <select name="student_id" id="student_id" class="form-select" required>
+          <option value="">-- Select Student --</option>
+          <% students.forEach(s => { %>
+            <option value="<%= s.id %>"><%= s.name %></option>
+          <% }) %>
+        </select>
+      </div>
 
-        <div class="mb-3">
-          <label for="student_id" class="form-label">Uploader (Student)</label>
-          <select name="student_id" id="student_id" class="form-select" required>
-            <option value="">-- Select Student --</option>
-            <% students.forEach(s => { %>
-              <option value="<%= s.id %>"><%= s.name %></option>
-            <% }) %>
-          </select>
-        </div>
+      <div class="mb-3">
+        <label for="ig_id" class="form-label"><i class="fas fa-users"></i>Interest Group</label>
+        <select name="ig_id" id="ig_id" class="form-select" required>
+          <option value="">-- Select IG --</option>
+          <% igs.forEach(ig => { %>
+            <option value="<%= ig.id %>"><%= ig.name %></option>
+          <% }) %>
+        </select>
+      </div>
 
-        <div class="mb-3">
-          <label for="ig_id" class="form-label">Interest Group</label>
-          <select name="ig_id" id="ig_id" class="form-select" required>
-            <option value="">-- Select IG --</option>
-            <% igs.forEach(ig => { %>
-              <option value="<%= ig.id %>"><%= ig.name %></option>
-            <% }) %>
-          </select>
-        </div>
+      <div class="mb-4">
+        <label for="caption" class="form-label"><i class="fas fa-comment-dots"></i>Caption</label>
+        <input type="text" class="form-control" name="caption" id="caption" placeholder="Enter caption" required>
+      </div>
 
-        <div class="text-center">
-          <button type="submit" class="btn btn-custom">
-            <i class="fas fa-upload me-1"></i> Upload Image
-          </button>
-          <a href="/admin/gallery" class="btn btn-secondary ms-2">
-            <i class="fas fa-arrow-left me-1"></i> Back
-          </a>
-        </div>
-      </form>
-    </div>
+      <div class="text-center">
+        <button type="submit" class="btn btn-custom px-4">
+          <i class="fas fa-upload me-1"></i>Upload
+        </button>
+        <a href="/admin/gallery" class="btn btn-secondary ms-2 px-4">
+          <i class="fas fa-arrow-left me-1"></i>Back
+        </a>
+      </div>
+    </form>
   </div>
 
-  <%- include('../partials/admin-footer') %>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

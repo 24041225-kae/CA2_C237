@@ -1,0 +1,33 @@
+<h1>All Students</h1>
+
+<table border="1">
+  <tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Course</th>
+    <th>Action</th>
+  </tr>
+
+  <% studentList.forEach(student => { %>
+    <tr>
+      <td><%= student.id %></td>
+      <td><%= student.name %></td>
+      <td><%= student.email %></td>
+      <td><%= student.course %></td>
+      <td>
+        <form action="/admin/students/delete/<%= student.id %>" method="POST" onsubmit="return confirm('Are you sure?');">
+          <button type="submit">Delete</button>
+        </form>
+      </td>
+    </tr>
+  <% }) %>
+</table>
+
+<% if (message.length > 0) { %>
+  <p style="color:red;"><%= message %></p>
+<% } %>
+
+<% if (successMsg.length > 0) { %>
+  <p style="color:green;"><%= successMsg %></p>
+<% } %>

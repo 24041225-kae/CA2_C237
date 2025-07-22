@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meeting Schedules</title>
+</head>
+<body>
+    <h1>Interest Group Meeting Schedule</h1>
+
+    <form method="GET" action="/meeting-schedule">
+        <input type="text" name="search" placeholder="Search IG name" value="<%= searchTerm %>">
+        <button type="submit">Search</button>
+    </form>
+
+    <p>Welcome <%= username %>! You are logged in as <%= userRole %>.</p>
+
+    <% if (schedules.length > 0) { %>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>IG Name</th>
+                    <th>Meeting Time</th>
+                    <th>Advisor</th>
+                    <% if (userRole === 'admin') { %><th>Actions</th><% } %>
+                </tr>
+            </thead>
+            <tbody>
+                <% schedules.forEach(function(schedule) { %>
+                    <tr>
+                        <td><%= schedule.name %></td>
+                        <td><%= schedule.meeting_schedule %></td>
+                        <td><%= schedule.advisor %></td>
+                        <% if (userRole === 'admin') { %>
+                            <td><a href="/edit-schedule/<%= schedule.id %>">Edit</a></td>
+                        <% } %>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    <% } else { %>
+        <p>No schedules found.</p>
+    <% } %>
+
+    <a href="/dashboard">← Back to Dashboard</a>
+</body>
+</html>

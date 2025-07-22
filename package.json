@@ -6,7 +6,7 @@
   "type": "commonjs",
   "main": "nodemon app.js",
   "scripts": {
-    "test": "nodemon app.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "check-disk-space": "^3.4.0",
