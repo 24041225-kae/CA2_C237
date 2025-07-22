@@ -138,18 +138,18 @@ app.post('/admin/announcements/delete/:id', (req, res) => {
 });
 
 //Route student dashboard
-app.get('Student/studentDashboard', authUser, (req, res) => {
-  if (req.session.user.roles === 'student') {
-    return res.render('Student/studentDashboard', {
-      user: req.session.user.username,
-      successMsg: req.flash('successMsg'),
-      errorMsg: req.flash('errorMsg')
-    });
-  } else {
-    req.flash('errorMsg', 'Access denied. Students only.');
-    return res.redirect('/admindashboard');
-  }
-});
+// app.get('Student/studentDashboard', authUser, (req, res) => {
+//   if (req.session.user.roles === 'student') {
+//     return res.render('Student/studentDashboard', {
+//       user: req.session.user.username,
+//       successMsg: req.flash('successMsg'),
+//       errorMsg: req.flash('errorMsg')
+//     });
+//   } else {
+//     req.flash('errorMsg', 'Access denied. Students only.');
+//     return res.redirect('/admindashboard');
+//   }
+// });
 
 
 
@@ -325,7 +325,7 @@ app.get('/admin/gallery/add', (req, res) => {
 
 // ---------- Home ----------
 app.get('/', (req, res) => res.redirect('/login'));
-app.get('/home', (req, res) => res.render('Student/studentDashboard'));
+// app.get('/home', (req, res) => res.render('Student/studentDashboard'));
 
 // ---------- Login ----------
 app.get('/login', (req, res) => {
@@ -954,19 +954,19 @@ app.post('/achievements/edit/:id', (req, res) => {
 
 
 
-app.get("Student/studentDashboard", authUser, (req, res) => {
-  if (req.session.user.roles === "student") {
-    return res.render("/Student/studentdashboard", {
-    return res.render("Student/studentDashboard", {
-      user: req.session.user.username,
-      successMsg: req.flash('successMsg'),
-      errorMsg: req.flash('errorMsg')
-    });
-  } else {
-    req.flash('errorMsg', 'Access denied. Students only.');
-    return res.redirect('/admindashboard');
-  }
-});
+// n
+//   if (req.session.user.roles === "student") {
+//     return res.render("/Student/studentdashboard", {
+//     return res.render("Student/studentDashboard", {
+//       user: req.session.user.username,
+//       successMsg: req.flash('successMsg'),
+//       errorMsg: req.flash('errorMsg')
+//     });
+//   } else {
+//     req.flash('errorMsg', 'Access denied. Students only.');
+//     return res.redirect('/admindashboard');
+//   }
+// });
 
 // ---------- Admin: Manage IGs ----------
 app.get("/admin/igs", authAdmin, (req, res) => {
@@ -983,6 +983,114 @@ app.get("/admin/igs", authAdmin, (req, res) => {
     });
   });
 });
+
+// Display all schedules with optional search
+app.get('/meeting_schedule', (req, res) => {
+  const searchTerm = req.query.search || '';
+
+  let sql = 'SELECT * FROM schedules';
+  let params = [];
+
+  if (searchTerm) {
+    sql += ' WHERE name LIKE ?';
+    params.push(`%${searchTerm}%`);
+  }
+
+  db.query(sql, params, (err, results) => {
+    if (err) throw err;
+    res.render('meeting_schedule', {
+      schedules: results,
+      success: req.flash('success'),
+      errors: req.flash('error'),
+      searchTerm: searchTerm
+    });
+  });
+});
+
+// Show form to create new schedule
+app.get('/schedule/new', (req, res) => {
+  res.render('new_schedule', {
+    errors: req.flash('error'),
+    success: req.flash('success')
+  });
+});
+
+// Handle creation of new schedule
+app.post('/schedule/new', (req, res) => {
+  const { name, meeting_schedule, advisor } = req.body;
+
+  if (!name || !meeting_schedule || !advisor) {
+    req.flash('error', 'All fields are required.');
+    return res.redirect('/schedule/new');
+  }
+
+  db.query(
+    'INSERT INTO schedules (name, meeting_schedule, advisor) VALUES (?, ?, ?)',
+    [name, meeting_schedule, advisor],
+    (err) => {
+      if (err) throw err;
+      req.flash('success', 'Schedule created successfully!');
+      res.redirect('/schedule/new');
+    }
+  );
+});
+
+// Show form to edit a schedule
+app.get('/edit_schedule/:id', (req, res) => {
+  const id = req.params.id;
+
+  db.query('SELECT * FROM schedules WHERE id = ?', [id], (err, results) => {
+    if (err) throw err;
+    if (results.length === 0) {
+      req.flash('error', 'Schedule not found');
+      return res.redirect('/meeting_schedule');
+    }
+
+    res.render('edit_schedule', {
+      ig: results[0],
+      errors: req.flash('error'),
+      success: req.flash('success')
+    });
+  });
+});
+
+// Handle update to a schedule
+app.post('/edit_schedule/:id', (req, res) => {
+  const id = req.params.id;
+  let { name, meeting_schedule, advisor } = req.body;
+
+  if (!name || !meeting_schedule || !advisor) {
+    req.flash('error', 'All fields are required.');
+    return res.redirect(`/edit_schedule/${id}`);
+  }
+
+  // Convert datetime-local (like '2025-07-23T14:30') to MySQL datetime format
+  meeting_schedule = meeting_schedule.replace('T', ' ') + ':00';
+
+  db.query(
+    'UPDATE schedules SET name = ?, meeting_schedule = ?, advisor = ? WHERE id = ?',
+    [name, meeting_schedule, advisor, id],
+    (err) => {
+      if (err) throw err;
+      req.flash('success', 'Schedule updated successfully!');
+      res.redirect(`/edit_schedule/${id}`);
+    }
+  );
+});
+
+app.post('/delete_schedule/:id', (req, res) => {
+  const id = req.params.id;
+
+  db.query('DELETE FROM schedules WHERE id = ?', [id], (err, result) => {
+    if (err) {
+      req.flash('error', 'Failed to delete schedule.');
+      return res.redirect('/meeting_schedule');
+    }
+    req.flash('success', 'Schedule deleted successfully.');
+    res.redirect('/meeting_schedule');
+  });
+});
+
 
 // ---------- Start Server ----------
 app.listen(4000, () => {
