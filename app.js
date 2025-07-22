@@ -8,7 +8,7 @@ const validator = require('validator');
 
 const app = express();
 const moment = require('moment'); // npm install moment
-    const checkDiskSpace = require('check-disk-space').default;
+const checkDiskSpace = require('check-disk-space').default;
 app.use(express.urlencoded({ extended: true }));
 
 // MySQL Setup
@@ -1043,7 +1043,7 @@ app.post('/schedule/new', (req, res) => {
 app.get('/edit_schedule/:id', (req, res) => {
   const id = req.params.id;
 
-  db.query('SELECT * FROM schedules WHERE id = ?', [id], (err, results) => {
+  connection.query('SELECT * FROM schedules WHERE id = ?', [id], (err, results) => {
     if (err) throw err;
     if (results.length === 0) {
       req.flash('error', 'Schedule not found');
@@ -1071,7 +1071,7 @@ app.post('/edit_schedule/:id', (req, res) => {
   // Convert datetime-local (like '2025-07-23T14:30') to MySQL datetime format
   meeting_schedule = meeting_schedule.replace('T', ' ') + ':00';
 
-  db.query(
+  connection.query(
     'UPDATE schedules SET name = ?, meeting_schedule = ?, advisor = ? WHERE id = ?',
     [name, meeting_schedule, advisor, id],
     (err) => {
@@ -1085,7 +1085,7 @@ app.post('/edit_schedule/:id', (req, res) => {
 app.post('/delete_schedule/:id', (req, res) => {
   const id = req.params.id;
 
-  db.query('DELETE FROM schedules WHERE id = ?', [id], (err, result) => {
+  connection.query('DELETE FROM schedules WHERE id = ?', [id], (err, result) => {
     if (err) {
       req.flash('error', 'Failed to delete schedule.');
       return res.redirect('/meeting_schedule');
