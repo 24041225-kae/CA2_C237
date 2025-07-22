@@ -1002,7 +1002,7 @@ app.get('/meeting_schedule', (req, res) => {
 
   connection.query(sql, params, (err, results) => {
     if (err) throw err;
-    res.render('meeting_schedule', {
+    res.render('Admin/meeting_schedule', {
       schedules: results,
       success: req.flash('success'),
       errors: req.flash('error'),
