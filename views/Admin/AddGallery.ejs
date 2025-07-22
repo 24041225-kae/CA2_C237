@@ -69,7 +69,6 @@
   <div class="background-overlay"></div>
 
   <!-- Navbar -->
-  <%- include('../partials/admin-navbar') %>
 
   <!-- Main Content -->
   <div class="container my-5 content-wrapper">
@@ -89,15 +88,15 @@
 
     <!-- Form Card -->
     <div class="form-container">
-      <form action="/admin/gallery/add" method="POST">
+      <form action="/admin/gallery/add" method="POST" enctype="multipart/form-data">
         <div class="mb-3">
           <label for="title" class="form-label">Image Title</label>
           <input type="text" class="form-control" name="title" id="title" placeholder="Enter image title" required>
         </div>
 
         <div class="mb-3">
-          <label for="image_url" class="form-label">Image URL</label>
-          <input type="text" class="form-control" name="image_url" id="image_url" placeholder="Paste image URL here" required>
+          <label for="media" class="form-label">Media File (Image or Video)</label>
+          <input type="file" class="form-control" name="media" id="media" required>
         </div>
 
         <div class="mb-3">
@@ -120,9 +119,14 @@
           </select>
         </div>
 
+        <div class="mb-3">
+          <label for="caption" class="form-label">Caption</label>
+          <input type="text" class="form-control" name="caption" id="caption" placeholder="Enter caption" required>
+        </div>
+
         <div class="text-center">
           <button type="submit" class="btn btn-custom">
-            <i class="fas fa-upload me-1"></i> Upload Image
+            <i class="fas fa-upload me-1"></i> Upload
           </button>
           <a href="/admin/gallery" class="btn btn-secondary ms-2">
             <i class="fas fa-arrow-left me-1"></i> Back
@@ -132,7 +136,6 @@
     </div>
   </div>
 
-  <%- include('../partials/admin-footer') %>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
