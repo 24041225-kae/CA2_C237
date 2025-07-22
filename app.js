@@ -985,7 +985,7 @@ app.get("/admin/igs", authAdmin, (req, res) => {
 });
 
 // ---------- Start Server ----------
-app.listen(4000, () => {
+app.listen(3000, () => {
   console.log('🚀 Server is running on http://localhost:3000');
 
 });
