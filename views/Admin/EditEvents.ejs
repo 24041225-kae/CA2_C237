@@ -61,6 +61,7 @@
   </style>
 </head>
 <body>
+<<<<<<< HEAD
 
   <!-- Background Overlay -->
   <div class="background-overlay"></div>
@@ -84,6 +85,15 @@
         <a href="/admin/events" class="btn btn-outline-secondary">
           <i class="fa fa-arrow-left me-1"></i> Back to List
         </a>
+=======
+<%- include('partials/Admin/admin-navbar') %>
+  <div class="form-container">
+    <h2>Edit Event</h2>
+    <form action="/admin/events/edit/<%= event.id %>" method="POST">
+      <div class="mb-3">
+        <label for="name" class="form-label">Event Name</label>
+        <input type="text" class="form-control" id="name" name="name" value="<%= event.name %>" required>
+>>>>>>> 0dd37e08ecd83a9669a31af625ab9ece5cf60b63
       </div>
 
       <form action="/admin/events/edit/<%= event.id %>" method="POST">

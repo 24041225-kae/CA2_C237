@@ -8,7 +8,7 @@ const validator = require('validator');
 
 const app = express();
 const moment = require('moment'); // npm install moment
-    const checkDiskSpace = require('check-disk-space').default;
+const checkDiskSpace = require('check-disk-space').default;
 app.use(express.urlencoded({ extended: true }));
 
 // MySQL Setup
@@ -345,6 +345,7 @@ app.get('/admin/gallery/add', async (req, res) => {
     successMsg: req.flash('successMsg')
   });
 });
+<<<<<<< HEAD
 // 🧠 Route: GET /admin/students
 app.get("/admin/students", (req, res) => {
   const sql = "SELECT * FROM students ORDER BY name ASC";
@@ -362,6 +363,25 @@ app.get("/admin/students", (req, res) => {
     });
   });
 });
+=======
+// // 🧠 Route: GET /admin/students
+// app.get("/admin/students", (req, res) => {
+//   const sql = "SELECT * FROM students ORDER BY name ASC";
+//   connection.query(sql, (err, results) => {
+//     if (err) {
+//       console.error("Error fetching students:", err);
+//       req.flash("message", "Failed to load student list.");
+//       return res.render("Admin/manageStudents", { studentList: [], message: req.flash("message"), successMsg: [] });
+//     }
+
+//     res.render("Admin/manageStudents", {
+//       studentList: results,
+//       message: req.flash("message"),
+//       successMsg: req.flash("successMsg")
+//     });
+//   });
+// });
+>>>>>>> 0dd37e08ecd83a9669a31af625ab9ece5cf60b63
 
 // 🔴 Optional: POST /admin/students/delete/:id
 app.post("/admin/students/delete/:id", (req, res) => {
@@ -1004,11 +1024,11 @@ app.post('/admin/achievements/add', (req, res) => {
 
   connection.query(sql, [student_id, title, description, date_awarded], (err, result) => {
     if (err) {
-      console.error('❌ Error inserting achievement:', err);
+      console.error(' Error inserting achievement:', err);
       return res.status(500).send('Database error.');
     }
 
-    // ✅ Redirect to achievements dashboard after success
+    //  Redirect to achievements dashboard after success
     res.redirect('/admin/achievements');
   });
 });
@@ -1057,7 +1077,7 @@ app.post('/achievements/edit/:id', (req, res) => {
 
   connection.query(updateQuery, [student_id, title, description, date_awarded, achievementId], (err, result) => {
     if (err) {
-      console.error('❌ Error updating achievement:', err);
+      console.error(' Error updating achievement:', err);
       return res.status(500).send('Database error.');
     }
 
@@ -1157,7 +1177,7 @@ app.post('/admin/schedule/new', (req, res) => {
 app.get('/admin/edit_schedule/:id', (req, res) => {
   const id = req.params.id;
 
-  db.query('SELECT * FROM schedules WHERE id = ?', [id], (err, results) => {
+  connection.query('SELECT * FROM schedules WHERE id = ?', [id], (err, results) => {
     if (err) throw err;
     if (results.length === 0) {
       req.flash('error', 'Schedule not found');
@@ -1185,7 +1205,7 @@ app.post('/admin/edit_schedule/:id', (req, res) => {
   // Convert datetime-local (like '2025-07-23T14:30') to MySQL datetime format
   meeting_schedule = meeting_schedule.replace('T', ' ') + ':00';
 
-  db.query(
+  connection.query(
     'UPDATE schedules SET name = ?, meeting_schedule = ?, advisor = ? WHERE id = ?',
     [name, meeting_schedule, advisor, id],
     (err) => {
@@ -1199,7 +1219,7 @@ app.post('/admin/edit_schedule/:id', (req, res) => {
 app.post('/admin/delete_schedule/:id', (req, res) => {
   const id = req.params.id;
 
-  db.query('DELETE FROM schedules WHERE id = ?', [id], (err, result) => {
+  connection.query('DELETE FROM schedules WHERE id = ?', [id], (err, result) => {
     if (err) {
       req.flash('error', 'Failed to delete schedule.');
       return res.redirect('/meeting_schedule');
@@ -1211,7 +1231,7 @@ app.post('/admin/delete_schedule/:id', (req, res) => {
 
 
 // ---------- Start Server ----------
-app.listen(3000, () => {
-  console.log('🚀 Server is running on http://localhost:3000');
+app.listen(4000, () => {
+  console.log('🚀 Server is running on http://localhost:4000');
 
 });
