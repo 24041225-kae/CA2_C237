@@ -1000,7 +1000,7 @@ app.get('/meeting_schedule', (req, res) => {
     params.push(`%${searchTerm}%`);
   }
 
-  db.query(sql, params, (err, results) => {
+  connection.query(sql, params, (err, results) => {
     if (err) throw err;
     res.render('meeting_schedule', {
       schedules: results,
