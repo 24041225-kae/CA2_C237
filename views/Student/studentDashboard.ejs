@@ -1,0 +1,110 @@
+<!-- Student Dashboard -->
+<div class="container py-4">
+  <!-- 🎉 Welcome Section -->
+  <div class="bg-primary text-white p-4 rounded mb-4 shadow">
+    <h3>Welcome, <%= studentName %> 👋</h3>
+    <p>Glad to have you back! Here's what's happening in your Interest Groups.</p>
+  </div>
+
+  <!-- 🏷️ Joined Interest Groups -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <h5>Your Interest Groups</h5>
+      <% if (joinedIGs.length > 0) { %>
+        <div class="d-flex flex-wrap gap-3">
+          <% joinedIGs.forEach(ig => { %>
+            <div class="card border-info" style="min-width: 220px;">
+              <div class="card-body">
+                <h6 class="card-title text-info"><%= ig.name %></h6>
+                <p class="mb-1"><%= ig.category %></p>
+                <small class="text-muted">Advisor: <%= ig.advisor %></small>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p class="text-muted">You're not part of any IG yet. Explore and join!</p>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- 📅 Upcoming Events -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <h5>Upcoming Events</h5>
+      <ul class="list-group">
+        <% if (studentEvents.length > 0) { %>
+          <% studentEvents.forEach(event => { %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong><%= event.name %></strong><br>
+                <small class="text-muted"><%= event.ig_name %> | <%= event.date %></small>
+              </div>
+              <span class="badge bg-success"><%= event.daysLeft %> days left</span>
+            </li>
+          <% }) %>
+        <% } else { %>
+          <li class="list-group-item text-muted">No upcoming events found.</li>
+        <% } %>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 📣 Latest Announcements -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <h5>Latest Announcements</h5>
+      <% announcements.forEach(a => { %>
+        <div class="alert alert-secondary mb-2">
+          <strong><%= a.title %></strong> <br>
+          <small><%= a.description %></small>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <!-- 🖼️ Gallery Highlights -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <h5>Gallery Highlights</h5>
+      <div class="row g-2">
+        <% galleryImages.forEach(img => { %>
+          <div class="col-4 col-md-2">
+            <img src="/uploads/<%= img.filename %>" alt="Gallery" class="img-fluid rounded shadow">
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🏅 Badges & Achievements -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <h5>Your Badges</h5>
+      <% if (badges.length > 0) { %>
+        <div class="d-flex gap-3 flex-wrap">
+          <% badges.forEach(badge => { %>
+            <div class="text-center">
+              <img src="/badges/<%= badge.icon %>" width="60" alt="Badge" class="mb-1">
+              <p class="small"><%= badge.title %></p>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p class="text-muted">No badges earned yet. Join events to collect!</p>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ⚡ Quick Links -->
+  <div class="row">
+    <div class="col-md-12">
+      <h5>Quick Access</h5>
+      <div class="btn-group" role="group">
+        <a href="/events" class="btn btn-outline-primary">Explore Events</a>
+        <a href="/profile" class="btn btn-outline-secondary">View Profile</a>
+        <a href="/edit-profile" class="btn btn-outline-success">Edit Info</a>
+      </div>
+    </div>
+  </div>
+</div>

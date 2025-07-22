@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Gallery | IGConnect Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    body {
+      background-color: #f4f7fa;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .header {
+      background: linear-gradient(to right, #f39c12, #f1c40f);
+      color: white;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+    }
+
+    .gallery-box {
+      background: white;
+      border-radius: 10px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .gallery-img {
+      height: 80px;
+      width: 80px;
+      object-fit: cover;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+
+    .btn-action {
+      margin: 0 2px;
+    }
+
+    .table thead {
+      background-color: #f39c12;
+      color: white;
+    }
+
+    .btn-warning {
+      background-color: #f39c12;
+      border: none;
+    }
+
+    .btn-warning:hover {
+      background-color: #e69500;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <h1>Manage Gallery</h1>
+    <p>View, add, or delete submitted gallery images.</p>
+  </header>
+
+  <!-- Page Content -->
+  <div class="container py-4">
+
+    <div class="top-bar">
+      <h4 class="fw-bold">Gallery Submissions</h4>
+      <a href="/admin/gallery/add" class="btn btn-warning">
+        <i class="fas fa-plus me-1"></i> Add New Gallery
+      </a>
+    </div>
+
+    <% if (message.length > 0) { %>
+      <div class="alert alert-warning"><%= message %></div>
+    <% } %>
+    <% if (successMsg.length > 0) { %>
+      <div class="alert alert-success"><%= successMsg %></div>
+    <% } %>
+
+    <div class="gallery-box">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Image</th>
+            <th>Title</th>
+            <th>Uploader</th>
+            <th>IG</th>
+            <th>Uploaded At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (galleryList.length === 0) { %>
+            <tr>
+              <td colspan="7" class="text-center text-muted">No gallery entries found.</td>
+            </tr>
+          <% } else { %>
+            <% galleryList.forEach((g, index) => { %>
+              <tr>
+                <td><%= index + 1 %></td>
+                <td>
+                  <% if (g.image_url) { %>
+                    <img src="<%= g.image_url %>" class="gallery-img" alt="Gallery Image"/>
+                  <% } else { %>
+                    <span class="text-muted">No Image</span>
+                  <% } %>
+                </td>
+                <td><%= g.title %></td>
+                <td><%= g.student_name %></td>
+                <td><%= g.ig_name %></td>
+                <td><%= new Date(g.created_at).toLocaleDateString('en-SG', { year: 'numeric', month: 'short', day: 'numeric' }) %></td>
+                <td>
+                  <a href="/admin/gallery/edit/<%= g.id %>" class="btn btn-sm btn-primary btn-action" title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <form action="/admin/gallery/delete/<%= g.id %>" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-danger btn-action" onclick="return confirm('Are you sure you want to delete this image?');" title="Delete">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

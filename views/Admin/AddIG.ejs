@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add New IG</title>
+
+  <!-- Bootstrap & FontAwesome -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <!-- Custom Styles -->
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url('/Images/AddIG.jpg') no-repeat center center fixed;
+      background-size: cover;
+      position: relative;
+    }
+
+    /* Real overlay container */
+    .background-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 0;
+    }
+
+    .content-wrapper {
+      position: relative;
+      z-index: 1;
+    }
+
+    .form-container {
+      max-width: 650px;
+      margin: auto;
+      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .heading-title {
+      color: #ffffff;
+      text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7);
+    }
+
+    .btn-custom {
+      background-color: #198754;
+      color: white;
+    }
+
+    .btn-custom:hover {
+      background-color: #146c43;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Overlay -->
+  <div class="background-overlay"></div>
+
+  <!-- Navbar -->
+  <%- include('partials/admin-navbar') %>
+
+  <!-- Main Content -->
+  <div class="container my-5 content-wrapper">
+    <!-- Heading -->
+    <div class="text-center mb-5">
+      <h1 class="display-5 fw-bold heading-title">Add a New Interest Group</h1>
+      <p class="lead text-white">Create and manage student groups efficiently</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="form-container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Interest Group Details</h2>
+        <a href="/ManageIG" class="btn btn-secondary">
+          <i class="fas fa-arrow-left me-1"></i> Back to List
+        </a>
+      </div>
+
+      <form action="/addIGAdmin" method="POST">
+        <div class="mb-3">
+          <label for="igName" class="form-label">IG Name</label>
+          <input type="text" class="form-control" id="igName" name="igName" placeholder="Enter Interest Group name" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="igCategory" class="form-label">Category</label>
+          <select class="form-select" id="igCategory" name="igCategory" required>
+            <option value="">-- Select Category --</option>
+            <option value="Sports">Sports</option>
+            <option value="Arts">Arts</option>
+            <option value="Culture">Culture</option>
+            <option value="Technology">Technology</option>
+            <option value="Community">Community</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="igDescription" class="form-label">IG Description</label>
+          <textarea class="form-control" id="igDescription" name="igDescription" rows="4" placeholder="Enter a brief description" required></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="advisorName" class="form-label">Advisor Name</label>
+          <input type="text" class="form-control" id="advisorName" name="advisorName" placeholder="Enter advisor's name" required>
+        </div>
+
+        <button type="submit" class="btn btn-custom">
+          <i class="fas fa-plus-circle me-1"></i> Add IG
+        </button>
+      </form>
+    </div>
+  </div>
+<%- include('partials/admin-footer') %>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

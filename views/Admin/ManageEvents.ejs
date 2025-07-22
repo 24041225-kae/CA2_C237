@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Events | IGConnect Admin</title>
+
+  <!-- Bootstrap & FontAwesome -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    body {
+      background-color: #f4f7fa;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+ .events-header {
+  background: linear-gradient(to right, rgba(30,30,30,0.7), rgba(0,0,0,0.7)),
+              url('/Images/AddIG.jpg') no-repeat center center;
+  background-size: cover;
+  color: white;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+
+    .events-header h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+    }
+
+    .events-header p {
+      font-size: 1.2rem;
+      font-weight: 300;
+    }
+
+    .module-box {
+      background: white;
+      border-radius: 10px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .events-table th {
+      background-color: #0d6efd;
+      color: white;
+    }
+
+    .btn-action {
+      margin: 0 3px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+   <%- include('../partials/admin-navbar') %>
+
+  <!-- Header Section -->
+  <header class="events-header">
+    <h1>Manage Events</h1>
+    <p>View, update, or delete scheduled student events</p>
+  </header>
+
+  <!-- Page Content -->
+
+
+    <div class="module-box">
+      <h1>Upcoming & Past Events</h1>
+      <% if (eventList.length === 0) { %>
+        <div class="text-center my-5 mt-5">
+  <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
+  <h4 class="fw-semibold text-muted">No Events Scheduled Yet</h4>
+  <p class="text-muted">Looks like you haven’t added any student events.</p>
+  <a href="/admin/events/add" class="btn btn-outline-primary mt-3">
+    <i class="fas fa-plus-circle me-1"></i> Create Your First Event
+  </a>
+</div>
+
+      <% } else { %>
+          <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="fw-bold">Upcoming & Past Events</h4>
+      <a href="/admin/events/add" class="btn btn-primary">
+        <i class="fas fa-calendar-plus me-1"></i> Add New Event
+      </a>
+    </div>
+        <table class="table table-hover events-table align-middle">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Event Name</th>
+              <th>Date</th>
+              <th>Location</th>
+              <th>Organised By</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% eventList.forEach((event, index) => { %>
+              <tr>
+                <td><%= index + 1 %></td>
+                <td><%= event.name %></td>
+                <td><%= event.date %></td>
+                <td><%= event.location %></td>
+                <td><%= event.ig_name %></td>
+                <td>
+                  <a href="/admin/events/edit/<%= event.id %>" class="btn btn-sm btn-primary btn-action">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <form action="/admin/events/delete/<%= event.id %>" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-danger btn-action" onclick="return confirm('Are you sure you want to delete this event?');">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+<%- include('../partials/admin-footer') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

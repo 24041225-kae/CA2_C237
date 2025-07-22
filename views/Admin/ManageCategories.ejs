@@ -1,0 +1,51 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-5">
+  <h2 class="mb-4">Manage IG Categories</h2>
+
+  <!-- Flash Messages -->
+  <% if (messages.success) { %>
+    <div class="alert alert-success"><%= messages.success %></div>
+  <% } %>
+  <% if (messages.error) { %>
+    <div class="alert alert-danger"><%= messages.error %></div>
+  <% } %>
+
+  <!-- Add New Category -->
+  <form action="/admin/manage-categories/add" method="POST" class="mb-4">
+    <div class="input-group">
+      <input type="text" name="category_name" class="form-control" placeholder="New Category Name" required>
+      <button class="btn btn-primary" type="submit">Add Category</button>
+    </div>
+  </form>
+
+  <!-- Category Table -->
+  <table class="table table-bordered">
+    <thead class="table-light">
+      <tr>
+        <th>ID</th>
+        <th>Category Name</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% categories.forEach((category) => { %>
+        <tr>
+          <td><%= category.id %></td>
+          <td><%= category.category_name %></td>
+          <td>
+            <form action="/admin/manage-categories/edit/<%= category.id %>" method="POST" class="d-inline">
+              <input type="text" name="category_name" class="form-control d-inline w-auto" value="<%= category.category_name %>" required>
+              <button class="btn btn-sm btn-success">Update</button>
+            </form>
+            <form action="/admin/manage-categories/delete/<%= category.id %>" method="POST" class="d-inline ms-2">
+              <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this category?')">Delete</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit Event | IGConnect Admin</title>
+
+  <!-- Bootstrap & FontAwesome -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    body {
+      background: linear-gradient(to right, #f8f9fa, #e9ecef);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .form-container {
+      max-width: 700px;
+      margin: 50px auto;
+      background-color: #fff;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-container h2 {
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .btn-custom {
+      background-color: #198754;
+      color: white;
+    }
+
+    .btn-custom:hover {
+      background-color: #146c43;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>Edit Event</h2>
+    <form action="/admin/events/edit/<%= event.id %>" method="POST">
+      <div class="mb-3">
+        <label for="name" class="form-label">Event Name</label>
+        <input type="text" class="form-control" id="name" name="name" value="<%= event.name %>" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="date" class="form-label">Date</label>
+        <input type="date" class="form-control" id="date" name="date" value="<%= event.date %>" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="location" class="form-label">Location</label>
+        <input type="text" class="form-control" id="location" name="location" value="<%= event.location %>" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="ig_id" class="form-label">Organised By (IG)</label>
+        <select class="form-select" id="ig_id" name="ig_id" required>
+          <% igList.forEach(ig => { %>
+            <option value="<%= ig.id %>" <%= ig.id === event.ig_id ? 'selected' : '' %>><%= ig.igName %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea class="form-control" id="description" name="description" rows="4" required><%= event.description %></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-custom">
+        <i class="fas fa-save me-1"></i> Save Changes
+      </button>
+      <a href="/admin/events" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+  </div>
+
+</body>
+</html>
