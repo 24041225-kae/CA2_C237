@@ -873,46 +873,277 @@ app.post('/admin/profile/delete', async (req, res) => {
 
 
 
-app.get('/admin/manage-categories', (req, res) => {
-  connection.query('SELECT * FROM ig_categories', (err, results) => {
+
+app.get('/admin/manage-igs', (req, res) => {
+  // Correct the SQL query with proper JOINs and GROUP BY
+  const query = `
+    SELECT 
+      ig.id, 
+      ig.name, 
+      ig.description, 
+      ig.advisor, 
+      ig_categories.name AS category_name, 
+      COUNT(members.id) AS member_count
+    FROM interest_groups AS ig
+    LEFT JOIN ig_categories ON ig.category_id = ig_categories.id
+    LEFT JOIN members ON members.ig_id = ig.id
+    GROUP BY ig.id, ig.name, ig.description, ig.advisor, ig_categories.name;
+  `;
+  
+  connection.query(query, (err, results) => {
     if (err) {
-      req.flash('error', 'Error loading categories');
-      return res.render('Admin/IG(Siti)/ManageIG', { igList: [],message:req.flash("success", ""), successMsg: req.flash("success", "")})
+      req.flash('error', 'Error loading interest groups');
+      return res.render('Admin/IG(Siti)/ManageIG', { 
+        igList: [], 
+        message: req.flash("success", ""), 
+        successMsg: req.flash("success", ""),
+        errorMsg: req.flash("error", "") 
+      });
     }
-    res.render('Admin/IG(Siti)/ManageIG', { igList: results,message:req.flash("success", ""), successMsg: req.flash("success", ""), errorMsg:req.flash("error", "") });
+    // Pass the results to the template for rendering
+    res.render('Admin/IG(Siti)/ManageIG', { 
+      igList: results, 
+      message: req.flash("success", ""), 
+      successMsg: req.flash("success", ""),
+      errorMsg: req.flash("error", "") 
+    });
   });
 });
 
-// // // ✅ Add IG Category
-// // app.post('/admin/manage-categories/add', (req, res) => {
-// //   const { category_name } = req.body;
-// //   connection.query('INSERT INTO ig_categories (name) VALUES (?)', [category_name], err => {
-// //     if (err) req.flash('error', 'Failed to add category');
-// //     else req.flash('success', 'Category added');
-// //     res.redirect('/admin/manage-categories');
-// //   });
-// // });
 
-// // // ✅ Edit IG Category
-// // app.post('/admin/manage-categories/edit/:id', (req, res) => {
-// //   const { id } = req.params;
-// //   const { category_name } = req.body;
-// // connection.query('UPDATE ig_categories SET name = ? WHERE id = ?', [category_name, id], err => {
-// //     if (err) req.flash('error', 'Failed to update category');
-// //     else req.flash('success', 'Category updated');
-// //     res.redirect('/admin/manage-categories');
-// //   });
-// // });
 
-// // // ✅ Delete IG Category
-// // app.post('/admin/manage-categories/delete/:id', (req, res) => {
-// //   const { id } = req.params;
-// //   connection.query('DELETE FROM ig_categories WHERE id = ?', [id], err => {
-// //     if (err) req.flash('error', 'Failed to delete category');
-// //     else req.flash('success', 'Category deleted');
-// //     res.redirect('/admin/manage-categories');
-// //   });
-// // });
+
+
+// GET route to render the 'Add New Interest Group' form
+app.get('/admin/manage-igs/add', (req, res) => {
+  // Query to fetch all categories for the category dropdown
+  connection.query('SELECT * FROM ig_categories', (err, categories) => {
+    if (err) {
+      req.flash('error', 'Error loading categories');
+      return res.render('Admin/IG(Siti)/AddIG', { 
+        categories: [], 
+        successMsg: req.flash("success"),
+        errorMsg: req.flash('error') 
+      });
+    }
+
+    // Render the 'Add New Interest Group' form with categories
+    res.render('Admin/IG(Siti)/AddIG', {
+      categories: categories,
+      errorMsg: req.flash('error'),
+              successMsg: req.flash("success"),
+
+    });
+  });
+});
+
+
+app.post('/admin/manage-igs/add', (req, res) => {
+  const { name, category_id, description, advisor } = req.body;
+
+  // Insert the new interest group into the database
+  const query = 'INSERT INTO interest_groups (name, category_id, description, advisor) VALUES (?, ?, ?, ?)';
+  
+  connection.query(query, [name, category_id, description, advisor], (err) => {
+    if (err) {
+      req.flash('error', 'Failed to add Interest Group');
+      return res.redirect('/admin/manage-igs'); // Redirect back to the Manage IGs page
+    }
+
+    req.flash('success', 'Interest Group added successfully!');
+    res.redirect('/admin/manage-igs'); // After successful insert, redirect to refresh the page and show the new IG
+  });
+});
+
+
+// POST route to delete an Interest Group
+app.post('/admin/manage-igs/delete/:id', (req, res) => {
+  const { id } = req.params;
+  
+  connection.query('DELETE FROM interest_groups WHERE id = ?', [id], (err) => {
+    if (err) {
+      req.flash('error', 'Failed to delete interest group');
+    } else {
+      req.flash('success', 'Interest group deleted');
+    }
+    res.redirect('/admin/manage-igs');
+  });
+});
+
+
+// GET route to render the Edit IG page
+app.get('/admin/manage-igs/edit/:id', (req, res) => {
+  const igId = req.params.id;
+  
+  // Query to fetch the IG details by ID
+  const igQuery = `
+    SELECT ig.id, ig.name, ig.description, ig.advisor, 
+           ig.category_id, ig_categories.name AS category_name
+    FROM interest_groups AS ig
+    LEFT JOIN ig_categories ON ig.category_id = ig_categories.id
+    WHERE ig.id = ?`;
+
+  // Query to fetch all categories for the dropdown
+  const categoriesQuery = `SELECT id, name FROM ig_categories`;
+
+  // Execute both queries
+  connection.query(igQuery, [igId], (err, igResults) => {
+    if (err) {
+      req.flash('error', 'Error loading interest group');
+      return res.redirect('/admin/manage-igs');
+    }
+
+    if (igResults.length === 0) {
+      req.flash('error', 'Interest group not found');
+      return res.redirect('/admin/manage-igs');
+    }
+
+    // Execute the categories query
+    connection.query(categoriesQuery, (err, categories) => {
+      if (err) {
+        req.flash('error', 'Error loading categories');
+        return res.redirect('/admin/manage-igs');
+      }
+
+      // Pass the IG and categories data to the view
+      const ig = igResults[0];
+      res.render('Admin/IG(Siti)/EditIG', {
+        ig: ig,   // IG details
+        categories: categories,   // All categories for the dropdown
+        successMsg: req.flash('success'),
+        errorMsg: req.flash('error')
+      });
+    });
+  });
+});
+
+
+app.post('/admin/manage-igs/edit/:id', (req, res) => {
+  const igId = req.params.id;
+  const { name, description, advisor, category_id } = req.body; // Extract form values
+
+  // Query to update the Interest Group
+  const query = `
+    UPDATE interest_groups
+    SET name = ?, description = ?, advisor = ?, category_id = ?
+    WHERE id = ?
+  `;
+  
+  connection.query(query, [name, description, advisor, category_id, igId], (err) => {
+    if (err) {
+      req.flash('error', 'Failed to update Interest Group');
+      return res.redirect(`/admin/manage-igs/edit/${igId}`); // Redirect back to the edit page if error occurs
+    }
+
+    req.flash('success', 'Interest Group updated successfully');
+    res.redirect('/admin/manage-igs'); // Redirect to the manage page after success
+  });
+});
+
+
+
+// GET route for managing categories
+app.get('/admin/manage-categories', (req, res) => {
+  // Query to fetch existing categories
+  connection.query('SELECT * FROM ig_categories', (err, categories) => {
+    if (err) {
+      req.flash('error', 'Error loading categories');
+      return res.render('Admin/IG(Siti)/ManageCategories', { 
+        categories: [], 
+        successMsg: req.flash('success'), 
+        errorMsg: req.flash('error') 
+      });
+    }
+
+    res.render('Admin/IG(Siti)/ManageCategories', {
+      categories: categories,
+      successMsg: req.flash('success'),
+      errorMsg: req.flash('error')
+    });
+  });
+});
+// POST route to add a new category
+app.post('/admin/manage-categories/add', (req, res) => {
+  const { category_name } = req.body;
+
+  // Check if the category already exists
+  connection.query('SELECT * FROM ig_categories WHERE name = ?', [category_name], (err, results) => {
+    if (err) {
+      req.flash('error', 'Error checking category');
+      return res.redirect('/admin/manage-categories');
+    }
+
+    if (results.length > 0) {
+      // Category already exists
+      req.flash('error', 'Category already exists');
+      return res.redirect('/admin/manage-categories');
+    }
+
+    // Insert new category into the database
+    connection.query('INSERT INTO ig_categories (name) VALUES (?)', [category_name], (err) => {
+      if (err) {
+        req.flash('error', 'Failed to add category');
+        return res.redirect('/admin/manage-categories');
+      }
+      req.flash('success', 'Category added successfully');
+      res.redirect('/admin/manage-categories');
+    });
+  });
+});
+// POST route to update a category
+app.post('/admin/manage-categories/edit/:id', (req, res) => {
+  const categoryId = req.params.id;
+  const { category_name } = req.body;
+
+  // Query to update the category name
+  connection.query('UPDATE ig_categories SET name = ? WHERE id = ?', [category_name, categoryId], (err) => {
+    if (err) {
+      req.flash('error', 'Failed to update category');
+      return res.redirect(`/admin/manage-categories/edit/${categoryId}`);
+    }
+    req.flash('success', 'Category updated successfully');
+    res.redirect('/admin/manage-categories');
+  });
+});
+
+// GET route to render the category edit form
+app.get('/admin/manage-categories/edit/:id', (req, res) => {
+  const categoryId = req.params.id;
+
+  // Query to fetch the category details by its ID
+  connection.query('SELECT * FROM ig_categories WHERE id = ?', [categoryId], (err, results) => {
+    if (err) {
+      req.flash('error', 'Failed to fetch category details');
+      return res.redirect('/admin/manage-categories');
+    }
+
+    // Check if category exists
+    if (results.length === 0) {
+      req.flash('error', 'Category not found');
+      return res.redirect('/admin/manage-categories');
+    }
+
+    // Render the edit form with the category details
+    res.render('Admin/IG(Siti)/EditCategory', { 
+      category: results[0], 
+      successMsg: req.flash('success'), 
+      errorMsg: req.flash('error')
+    });
+  });
+});
+
+
+// POST route to delete a category
+app.post('/admin/manage-categories/delete/:id', (req, res) => {
+  const { id } = req.params;
+  connection.query('DELETE FROM ig_categories WHERE id = ?', [id], err => {
+    if (err) req.flash('error', 'Failed to delete category');
+    else req.flash('success', 'Category deleted');
+    res.redirect('/admin/manage-categories');
+  });
+});
+
+
 
 
 

@@ -3,30 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Add New IG | IGConnect Admin</title>
+  <title>Edit Interest Group | IGConnect Admin</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
   <style>
-    /* Base Style */
     body {
       background-color: #f4f7fc;
       font-family: 'Roboto', sans-serif;
       margin: 0;
     }
 
-    /* Header Style */
     .page-title {
       background: linear-gradient(to right, #1e3c72, #2a5298);
       color: white;
       font-weight: bold;
       padding: 60px 0;
       text-align: center;
-      position: relative;
     }
 
-    /* Form Card Style */
     .card {
       border-radius: 12px;
       box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
@@ -47,7 +43,6 @@
       background-color: #fff;
     }
 
-    /* Button Styles */
     .btn {
       transition: all 0.3s ease;
     }
@@ -76,12 +71,22 @@
       border-color: #c62828;
     }
 
-    /* Flash Message Styling */
     .alert {
-      margin-bottom: 30px;
       border-radius: 12px;
     }
 
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      .card {
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .card {
+        padding: 15px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -90,39 +95,42 @@
 
 <section class="page-title pt-5 pb-5">
   <div class="header-overlay">
-    <h1>Add New Interest Group</h1>
-    <p>Fill in the details below to add a new Interest Group.</p>
+    <h1>Edit Interest Group</h1>
+    <p>Update the details of the selected Interest Group.</p>
   </div>
 </section>
 
 <div class="container mt-5">
-  <!-- Flash Messages -->
-  <% if (successMsg && successMsg.length > 0) { %>
-    <div class="alert alert-success">
-      <%= successMsg[0] %>  <!-- Display success message -->
-    </div>
-  <% } %>
-
-  <% if (errorMsg && errorMsg.length > 0) { %>
-    <div class="alert alert-danger">
-      <%= errorMsg[0] %>  <!-- Display error message -->
-    </div>
-  <% } %>
-
-  <!-- Form for Adding a New IG -->
-  <div class="card">
+  <!-- Edit IG Form -->
+  <div class="card mb-5">
     <div class="card-header">
-      <h5>New Interest Group</h5>
+      <h5>Edit Interest Group</h5>
     </div>
     <div class="card-body">
-      <form action="/admin/manage-igs/add" method="POST">
+      <!-- Display success/error flash messages -->
+      <% if (successMsg && successMsg.length > 0) { %>
+        <div class="alert alert-success">
+          <%= successMsg[0] %>
+        </div>
+      <% } %>
+
+      <% if (errorMsg && errorMsg.length > 0) { %>
+        <div class="alert alert-danger">
+          <%= errorMsg[0] %>
+        </div>
+      <% } %>
+
+      <!-- Form to update the Interest Group details -->
+      <form action="/admin/manage-igs/edit/<%= ig.id %>" method="POST">
         <!-- Category Dropdown -->
         <div class="mb-3">
           <label for="category_name" class="form-label">Category</label>
-          <select name="category_name" id="category_name" class="form-select" required>
-            <option value="" disabled selected>Select Category</option>
+          <select name="category_id" id="category_name" class="form-select" required>
+            <option value="" disabled>Select Category</option>
             <% categories.forEach(category => { %>
-              <option value="<%= category.name %>"><%= category.name %></option>
+              <option value="<%= category.id %>" <%= ig.category_id === category.id ? 'selected' : '' %> >
+                <%= category.name %>
+              </option>
             <% }) %>
           </select>
         </div>
@@ -130,28 +138,26 @@
         <!-- Name Field -->
         <div class="mb-3">
           <label for="name" class="form-label">Interest Group Name</label>
-          <input type="text" id="name" name="name" class="form-control" required />
+          <input type="text" id="name" name="name" class="form-control" value="<%= ig.name %>" required />
         </div>
 
         <!-- Description Field -->
         <div class="mb-3">
           <label for="description" class="form-label">Description</label>
-          <textarea name="description" id="description" class="form-control" rows="3" required></textarea>
+          <textarea name="description" id="description" class="form-control" rows="3" required><%= ig.description %></textarea>
         </div>
 
         <!-- Advisor Field -->
         <div class="mb-3">
           <label for="advisor" class="form-label">Advisor</label>
-          <input type="text" name="advisor" id="advisor" class="form-control" required />
+          <input type="text" name="advisor" id="advisor" class="form-control" value="<%= ig.advisor %>" required />
         </div>
 
-        <button type="submit" class="btn btn-warning">Add IG</button>
+        <button type="submit" class="btn btn-warning">Update IG</button>
       </form>
     </div>
   </div>
 </div>
-
-<%- include("../../partials/Admin/footer") %>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Manage IGs | IGConnect Admin</title>
+  <title>Manage Categories | IGConnect Admin</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -23,6 +23,17 @@
       font-weight: bold;
       padding: 60px 0;
       text-align: center;
+      position: relative;
+    }
+
+    .page-title h1 {
+      font-size: 3rem;
+      font-weight: 700;
+    }
+
+    .page-title p {
+      font-size: 1.2rem;
+      opacity: 0.8;
     }
 
     /* Card Style */
@@ -46,6 +57,7 @@
       background-color: #fff;
     }
 
+    /* Button Styles */
     .btn {
       transition: all 0.3s ease;
     }
@@ -74,18 +86,26 @@
       border-color: #c62828;
     }
 
-    /* Product Grid Styling */
-    .product-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
+    .btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
     }
 
-    .product-card {
-      flex: 1 1 calc(25% - 20px);
-      margin-bottom: 20px;
+    .btn-primary:hover {
+      background-color: #0056b3;
+      border-color: #0056b3;
     }
 
+    /* Modal Custom Styles */
+    .modal-content {
+      border-radius: 12px;
+    }
+
+    .modal-header {
+      font-weight: 600;
+    }
+
+    /* No Items Found */
     .no-items {
       font-size: 1.5rem;
       color: #555;
@@ -93,15 +113,26 @@
       margin-top: 30px;
     }
 
-    /* Responsive Adjustments */
+    /* Responsive Card Grid */
+    .category-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .category-card {
+      flex: 1 1 calc(25% - 20px);
+      margin-bottom: 20px;
+    }
+
     @media (max-width: 768px) {
-      .product-card {
+      .category-card {
         flex: 1 1 calc(50% - 20px);
       }
     }
 
     @media (max-width: 576px) {
-      .product-card {
+      .category-card {
         flex: 1 1 calc(100% - 20px);
       }
     }
@@ -113,75 +144,87 @@
 
 <section class="page-title pt-5 pb-5">
   <div class="header-overlay">
-    <h1>Manage Interest Groups</h1>
-    <p>View, edit, and organize student Interest Groups.</p>
+    <h1>Manage Categories</h1>
+    <p>View, edit, and delete student Interest Group categories.</p>
   </div>
 </section>
 
 <div class="container mt-5">
-  <!-- Add New IG Button (at the top) -->
-  <div class="d-flex justify-content-end mb-4">
-    <a href="/admin/manage-igs/add" class="btn btn-warning shadow-sm">Add New IG</a>
+  <!-- Category Add Form -->
+  <div class="card mb-5">
+    <div class="card-header">
+      <h5>Add New Category</h5>
+    </div>
+    <div class="card-body">
+      <form action="/admin/manage-categories/add" method="POST">
+        <div class="mb-3">
+          <label for="category_name" class="form-label">Category Name</label>
+          <input type="text" name="category_name" id="category_name" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-warning">Add Category</button>
+      </form>
+    </div>
   </div>
 
-  <!-- Search Bar -->
-  <div class="d-flex justify-content-center mb-4">
-    <input type="text" class="form-control w-50" id="searchInput" placeholder="Search Interest Groups..." />
-  </div>
+  <!-- Success/Error Flash Messages -->
+  <% if (successMsg && successMsg.length > 0) { %>
+    <div class="alert alert-success">
+      <%= successMsg[0] %>  <!-- Display success message -->
+    </div>
+  <% } %>
 
-  <div class="product-grid" id="productGrid">
-    <!-- Display IG List -->
-    <% if (igList.length > 0) { %>
-      <% igList.forEach((ig, index) => { %>
-        <div class="product-card card col-lg-3 col-md-6 col-sm-12">
-          <div class="card-header">
-            <h5><%= ig.name %></h5>
-          </div>
-          <div class="card-body">
-            <p><strong>Category:</strong> <%= ig.category_name ? ig.category_name : "There is no category assigned yet" %></p>
-            <p><strong>Advisor:</strong> <%= ig.advisor %></p>
-            <p><strong>Members:</strong> <%= ig.member_count %></p> <!-- Display member count fetched from the query -->
-            <div class="d-flex justify-content-between flex-wrap">
-              <a href="/admin/manage-igs/edit/<%= ig.id %>" class="btn btn-sm btn-primary shadow-sm me-2 mb-2">
-                <i class="fas fa-edit"></i> Edit
-              </a>
+  <% if (errorMsg && errorMsg.length > 0) { %>
+    <div class="alert alert-danger">
+      <%= errorMsg[0] %>  <!-- Display error message -->
+    </div>
+  <% } %>
 
-              <!-- Trigger Modal for Deletion -->
-              <button class="btn btn-sm btn-danger shadow-sm mb-2" data-bs-toggle="modal" data-bs-target="#deleteModal<%= ig.id %>">
+  <!-- Existing Categories -->
+  <div class="card">
+    <div class="card-header">
+      <h5>Existing Categories</h5>
+    </div>
+    <div class="card-body">
+      <div class="category-grid">
+        <% categories.forEach(category => { %>
+          <div class="category-card card">
+            <div class="card-header">
+              <h5><%= category.name %></h5>
+            </div>
+            <div class="card-body">
+              <!-- Trigger Delete Modal -->
+              <button class="btn btn-sm btn-danger mb-2" data-bs-toggle="modal" data-bs-target="#deleteModal<%= category.id %>">
                 <i class="fas fa-trash"></i> Delete
               </button>
+              <a href="/admin/manage-categories/edit/<%= category.id %>" class="btn btn-sm btn-primary mb-2">
+                <i class="fas fa-edit"></i> Edit
+              </a>
             </div>
           </div>
-        </div>
 
-        <!-- Delete Confirmation Modal -->
-        <div class="modal fade" id="deleteModal<%= ig.id %>" tabindex="-1" aria-labelledby="deleteModalLabel<%= ig.id %>" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-danger">
-              <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deleteModalLabel<%= ig.id %>">Confirm Deletion</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                Are you sure you want to delete the Interest Group "<%= ig.name %>"?
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-                <!-- Delete Form -->
-                <form action="/admin/manage-igs/delete/<%= ig.id %>" method="POST" class="d-inline">
-                  <button type="submit" class="btn btn-danger">Yes, Delete</button>
-                </form>
+          <!-- Delete Confirmation Modal -->
+          <div class="modal fade" id="deleteModal<%= category.id %>" tabindex="-1" aria-labelledby="deleteModalLabel<%= category.id %>" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content border-danger">
+                <div class="modal-header bg-danger text-white">
+                  <h5 class="modal-title" id="deleteModalLabel<%= category.id %>">Confirm Deletion</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  Are you sure you want to delete the category "<%= category.name %>"?
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                  <form action="/admin/manage-categories/delete/<%= category.id %>" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                  </form>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      <% }) %>
-    <% } else { %>
-      <div class="no-items">
-        <p>No Interest Groups added.</p>
-        <a href="/admin/manage-igs/add" class="btn btn-warning shadow-sm">Add New IG</a>
+        <% }) %>
       </div>
-    <% } %>
+    </div>
   </div>
 </div>
 
@@ -231,31 +274,7 @@
 <% } %>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-  document.getElementById('searchInput').addEventListener('input', function() {
-    const searchValue = this.value.toLowerCase();
-    const productCards = document.querySelectorAll('.product-card');
-    let visibleCards = 0;
-
-    productCards.forEach(card => {
-      const igName = card.querySelector('.card-header h5').innerText.toLowerCase();
-      if (igName.includes(searchValue)) {
-        card.style.display = 'block';
-        visibleCards++;
-      } else {
-        card.style.display = 'none';
-      }
-    });
-
-    // Show message if no visible IGs
-    if (visibleCards === 0) {
-      document.getElementById('noItemsMessage').style.display = 'block';
-    } else {
-      document.getElementById('noItemsMessage').style.display = 'none';
-    }
-  });
-</script>
+<%- include("../../partials/Admin/footer") %>
 
 </body>
 </html>
