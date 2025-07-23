@@ -851,7 +851,7 @@ app.post('/admin/profile/delete', async (req, res) => {
     );
 
     // Flash message before destroying the session
-    req.flash('success', '✅ Your account has been deleted.');
+    req.flash('success', 'Your account has been deleted.');
 
     // Destroy session and redirect
     req.session.destroy(err => {
@@ -860,7 +860,6 @@ app.post('/admin/profile/delete', async (req, res) => {
         return res.redirect('/admin/profile');
       }
       res.clearCookie('connect.sid');
-      req.flash("error", "account had been deleted please create one ")
       return res.redirect('/login');
     });
 
