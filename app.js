@@ -860,7 +860,7 @@ app.post('/admin/profile/delete', async (req, res) => {
         return res.redirect('/admin/profile');
       }
       res.clearCookie('connect.sid');
-      req.flash("error", "account had been deleted , please create one ")
+      req.flash("error", "account had been deleted please create one ")
       return res.redirect('/login');
     });
 
