@@ -873,15 +873,15 @@ app.post('/admin/profile/delete', async (req, res) => {
 
 
 
-// app.get('/admin/manage-categories', (req, res) => {
-//   connection.query('SELECT * FROM ig_categories', (err, results) => {
-//     if (err) {
-//       req.flash('error', 'Error loading categories');
-//       return res.render('Admin/IG/ManageIG', { igList: [],message:req.flash(), successMsg: req.flash() });
-//     }
-//     res.render('Admin/IG/ManageIG', { igList: results,message:req.flash("sucess", ""), successMsg: req.flash(""), errors:req.flash() });
-//   });
-// });
+app.get('/admin/manage-categories', (req, res) => {
+  connection.query('SELECT * FROM ig_categories', (err, results) => {
+    if (err) {
+      req.flash('error', 'Error loading categories');
+      return res.render('Admin/IG(Siti)/ManageIG', { igList: [],message:req.flash("success", ""), successMsg: req.flash("success", "")})
+    }
+    res.render('Admin/IG(Siti)/ManageIG', { igList: results,message:req.flash("success", ""), successMsg: req.flash("success", ""), errorMsg:req.flash("error", "") });
+  });
+});
 
 // // // ✅ Add IG Category
 // // app.post('/admin/manage-categories/add', (req, res) => {
