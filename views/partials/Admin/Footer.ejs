@@ -1,0 +1,62 @@
+<footer class="footer text-center py-4 mt-5 text-light bg-dark border-top">
+  <div class="container">
+    <div class="mb-4 d-flex justify-content-center align-items-center gap-3">
+      <i class="fas fa-shield-alt fa-lg text-info footer-icon"></i>
+      <h5 class="mb-0 fw-bold">IGConnect Admin Panel</h5>
+    </div>
+    <p class="mb-1 small text-muted">&copy; 2025 IGConnect · All rights reserved.</p>
+    <div class="d-flex justify-content-center mt-2">
+      <p class="small mb-0">
+        <a href="/admin/help" class="footer-link me-3">Help</a>
+        <a href="/admin/contact" class="footer-link">Contact Support</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: #121212; /* Dark background for better contrast */
+    color: #f8f9fa; /* Light text for contrast */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+  }
+
+  .footer a {
+    color: #00d8ff; /* Bright link color */
+    transition: all 0.3s ease-in-out; /* Smooth transition */
+    text-decoration: none;
+  }
+
+  .footer a:hover {
+    color: #ffffff; /* Hover effect */
+    text-decoration: underline;
+    transform: scale(1.1); /* Slight zoom effect */
+  }
+
+  .footer .footer-icon {
+    transition: transform 0.3s ease; /* Icon hover effect */
+  }
+
+  .footer .footer-icon:hover {
+    transform: rotate(360deg); /* Icon rotation on hover */
+  }
+
+  .footer .text-muted {
+    color: #bbb !important; /* Muted text */
+  }
+
+  /* Responsive design: Adjusts alignment and spacing on smaller screens */
+  @media (max-width: 768px) {
+    .footer .container {
+      text-align: center;
+    }
+
+    .footer .footer-icon {
+      margin-bottom: 10px; /* Adds space between icon and text */
+    }
+
+    .footer .footer-link {
+      font-size: 0.9rem; /* Slightly smaller text for mobile */
+    }
+  }
+</style>

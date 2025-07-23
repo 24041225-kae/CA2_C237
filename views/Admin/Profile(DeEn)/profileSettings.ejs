@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Profile | IGConnect</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      background: linear-gradient(to right, #fdfbfb, #ebedee);
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+    }
+
+    .header-bg {
+      background-image: url('/Images/admin_background.jpg');
+      background-size: cover;
+      background-position: center;
+      height: 250px;
+      position: relative;
+    }
+
+    .header-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 2rem;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .card {
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn {
+      transition: all 0.2s ease-in-out;
+    }
+
+    .btn:hover {
+      transform: scale(1.03);
+    }
+
+    .preview-img {
+      width: 110px;
+      height: 110px;
+      object-fit: cover;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+      border: 3px solid #dee2e6;
+    }
+
+    .preview-img:hover {
+      transform: rotate(-1deg) scale(1.05);
+    }
+
+    .form-text {
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+
+    ul#passwordHints li {
+      transition: all 0.2s ease;
+    }
+
+    .form-control, .form-select {
+      border-radius: 10px;
+    }
+
+    .form-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #aaa;
+    }
+
+    .form-group {
+      position: relative;
+    }
+
+    .form-group input {
+      padding-left: 40px;
+    }
+
+    .eye-icon {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+
+    .right-panel img {
+      max-height: 90vh;
+      object-fit: cover;
+      width: 100%;
+    }
+
+    @media (max-width: 768px) {
+      .right-panel img {
+        max-height: 250px;
+      }
+    }
+  </style>
+</head>
+<body>
+<%- include("../../partials/Admin/navbar") %>
+
+<!-- Header Section with Overlay -->
+<div class="header-bg">
+  <div class="header-overlay">
+    Admin Profile Settings
+  </div>
+</div>
+
+<% const flashSuccess = success || []; %>
+<% const flashError = error || []; %>
+
+<div class="container py-5">
+  <h2 class="mb-5 text-center fw-bold text-dark">Admin Profile Settings</h2>
+
+  <!-- Flash Messages (Pop-up Modal) -->
+  <% if (flashSuccess.length > 0) { %>
+    <div class="modal fade" id="flashSuccessModal" tabindex="-1" aria-labelledby="flashSuccessModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title" id="flashSuccessModalLabel"><i class="fas fa-check-circle"></i> Success</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <%= flashSuccess[0] %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% } %>
+  
+  <% if (flashError.length > 0) { %>
+    <div class="modal fade" id="flashErrorModal" tabindex="-1" aria-labelledby="flashErrorModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="flashErrorModalLabel"><i class="fas fa-exclamation-circle"></i> Error</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <%= flashError[0] %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Profile Info -->
+  <div class="card p-4 mb-4">
+    <form action="/admin/profile/update" method="POST" enctype="multipart/form-data">
+     <div class="text-center mb-3">
+  <% if (!admin.profile_image) { %>
+    <p>There is no profile picture</p>
+  <% } else { %>
+<img id="previewImage" src="/uploads/<%= admin.profile_image || 'default-profile.png' %>" class="preview-img" alt="Profile Picture">
+  <% } %>
+</div>
+
+      <div class="mb-3">
+        <label class="form-label">Profile Picture</label>
+        <input type="file" class="form-control" name="profileImage" onchange="previewFile(this)">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-control" name="fullname" value="<%= admin.fullname %>">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" name="email" value="<%= admin.email %>">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" class="form-control" name="username" value="<%= admin.username %>">
+      </div>
+      <button class="btn btn-primary w-100"><i class="fas fa-save me-2"></i> Save Profile Changes</button>
+    </form>
+  </div>
+
+  <!-- Password Change -->
+  <div class="card p-4 mb-4">
+    <form action="/admin/profile/password" method="POST">
+      <div class="mb-3">
+        <label class="form-label">New Password</label>
+        <input type="password" name="newPassword" class="form-control" id="newPassword" required>
+        <div class="form-text">Password must have at least 8 characters, 1 uppercase letter, 1 number, and 1 special character (!@#$).</div>
+      </div>
+
+      <div class="progress mb-2" style="height: 6px;">
+        <div id="strengthBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+      </div>
+      <ul class="text-muted small ps-3" id="passwordHints">
+        <li id="length" class="text-danger">❌ At least 8 characters</li>
+        <li id="uppercase" class="text-danger">❌ One uppercase letter</li>
+        <li id="number" class="text-danger">❌ One number</li>
+        <li id="special" class="text-danger">❌ One special character</li>
+      </ul>
+
+      <div class="mb-3">
+        <label class="form-label">Confirm Password</label>
+        <input type="password" name="confirmPassword" class="form-control" required>
+      </div>
+      <button class="btn btn-success w-100"><i class="fas fa-sync-alt me-2"></i> Update Password</button>
+    </form>
+  </div>
+
+  <!-- Delete Account -->
+  <div class="card p-4 border-danger">
+    <p class="text-muted">This action is irreversible. Proceed with caution.</p>
+    <button class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+      <i class="fas fa-trash-alt me-2"></i> Delete My Account
+    </button>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-danger">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">Confirm Deletion</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center">
+          <i class="fas fa-exclamation-triangle fa-2x text-danger mb-3"></i>
+          <p>Are you sure you want to <strong>permanently delete</strong> your account? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer justify-content-center">
+          <form action="/admin/profile/delete" method="POST">
+            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+          </form>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function previewFile(input) {
+    const file = input.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        document.getElementById('previewImage').src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  document.getElementById('newPassword').addEventListener('input', function () {
+    const password = this.value;
+    const bar = document.getElementById('strengthBar');
+    const hints = {
+      length: document.getElementById('length'),
+      uppercase: document.getElementById('uppercase'),
+      number: document.getElementById('number'),
+      special: document.getElementById('special')
+    };
+
+    let strength = 0;
+    if (password.length >= 8) { hints.length.className = 'text-success'; strength += 25; } else { hints.length.className = 'text-danger'; }
+    if (/[A-Z]/.test(password)) { hints.uppercase.className = 'text-success'; strength += 25; } else { hints.uppercase.className = 'text-danger'; }
+    if (/\d/.test(password)) { hints.number.className = 'text-success'; strength += 25; } else { hints.number.className = 'text-danger'; }
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) { hints.special.className = 'text-success'; strength += 25; } else { hints.special.className = 'text-danger'; }
+
+    bar.style.width = strength + '%';
+    bar.className = 'progress-bar';
+    if (strength <= 25) bar.classList.add('bg-danger');
+    else if (strength <= 50) bar.classList.add('bg-warning');
+    else if (strength <= 75) bar.classList.add('bg-info');
+    else bar.classList.add('bg-success');
+  });
+
+  <% if (flashSuccess.length > 0) { %>
+    const successModal = new bootstrap.Modal(document.getElementById('flashSuccessModal'));
+    successModal.show();
+  <% } %>
+
+  <% if (flashError.length > 0) { %>
+    const errorModal = new bootstrap.Modal(document.getElementById('flashErrorModal'));
+    errorModal.show();
+  <% } %>
+</script>
+
+<%- include("../../partials/Admin/footer") %>
+
+</body>
+</html>
