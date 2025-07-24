@@ -77,7 +77,7 @@
 <body>
 
 <!-- Navbar -->
-<%- include('../partials/Admin/admin-navbar') %>
+<%- include("../../partials/Admin/Navbar") %>
 
 <!-- Header -->
 <header class="events-header">
@@ -125,27 +125,71 @@
                 <a href="/admin/events/edit/<%= event.id %>" class="btn btn-sm btn-outline-primary">
                   <i class="fas fa-edit me-1"></i>Edit
                 </a>
-                <form action="/admin/events/delete/<%= event.id %>" method="POST">
-                  <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this event?');">
-                    <i class="fas fa-trash me-1"></i>Delete
-                  </button>
+                <!-- Trigger Modal for Deletion -->
+                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal<%= event.id %>">
+                  <i class="fas fa-trash me-1"></i>Delete
+                </button>
+                <!-- Trigger View More Modal -->
+                <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#viewModal<%= event.id %>">
+                  <i class="fas fa-eye me-1"></i>View More
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteModal<%= event.id %>" tabindex="-1" aria-labelledby="deleteModalLabel<%= event.id %>" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-danger">
+              <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel<%= event.id %>">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                Are you sure you want to delete the event "<%= event.name %>"?
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                <!-- Delete Form -->
+                <form action="/admin/events/delete/<%= event.id %>" method="POST" class="d-inline">
+                  <button type="submit" class="btn btn-danger">Yes, Delete</button>
                 </form>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- View More Modal -->
+        <div class="modal fade" id="viewModal<%= event.id %>" tabindex="-1" aria-labelledby="viewModalLabel<%= event.id %>" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="viewModalLabel<%= event.id %>">Event Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <h5><%= event.name %></h5>
+                <p><strong>Date:</strong> <%= moment(event.date).format("ddd, MMM D YYYY") %></p>
+                <p><strong>Location:</strong> <%= event.location %></p>
+                <p><strong>Organized By:</strong> <%= event.ig_name %></p>
+                <p><strong>Description:</strong> <%= event.description %></p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       <% }) %>
     </div>
   <% } %>
 </div>
 
-<%- include('../partials/Admin/admin-footer') %>
+<%- include("../../partials/Admin/footer") %>
 
-<<<<<<< HEAD
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-=======
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <%- include('partials/Admin/admin-footer') %>
->>>>>>> 0dd37e08ecd83a9669a31af625ab9ece5cf60b63
 </body>
 </html>

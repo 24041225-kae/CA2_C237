@@ -10,9 +10,17 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto align-items-center">
-        <li class="nav-item">
-          <a class="nav-link text-dark" href="/admin/manage-categories">Manage IGs</a>
+        <!-- Manage IGs Dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Manage IGs
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/admin/manage-igs">View All IGs</a></li>
+            <li><a class="dropdown-item" href="/admin/manage-categories">Manage Categories</a></li>
+          </ul>
         </li>
+
         <li class="nav-item">
           <a class="nav-link text-dark" href="/admin/events">Events</a>
         </li>
@@ -23,8 +31,9 @@
           <a class="nav-link text-dark" href="/admin/announcements">Announcements</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-dark" href="admin/meeting_schedule">Meeting schedule</a>
-          <li class="nav-item">
+          <a class="nav-link text-dark" href="/admin/meeting_schedule">Meeting schedule</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link text-dark" href="/meeting_schedule">Students Meeting Schedule</a>
         </li>
         <li class="nav-item dropdown">

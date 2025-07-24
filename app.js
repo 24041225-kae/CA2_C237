@@ -32,7 +32,8 @@ const storage = multer.diskStorage({
     cb(null, 'proof-' + unique + path.extname(file.originalname));
   }
 });
-const upload = multer({ storage });
+
+const upload = multer({ storage , dest:'public/uploads/'});
 app.use(express.json());
 app.set('view engine', 'ejs');
 
@@ -177,79 +178,190 @@ const authUser = (req, res, next) => {
 
 
 
-// // app.get("/admin/events", authAdmin, (req, res) => {
-// //   const sqlEvents = `
-// //     SELECT e.id, e.name, e.date, e.description, ig.name AS ig_name
-// //     FROM events e
-// //     INNER JOIN interest_groups ig ON e.ig_id = ig.id
-// //     ORDER BY e.date ASC`;
+// GET route to render the "Manage Events" page
+app.get('/admin/events', (req, res) => {
+  const query = `
+    SELECT ev.id, ev.name, ev.date, ev.location, ev.description, ig.name AS ig_name
+    FROM events AS ev
+    LEFT JOIN ig_categories AS ig ON ev.ig_id = ig.id
+  `;
+
+  connection.query(query, (err, eventList) => {
+    console.log(eventList)
+    if (err) {
+      req.flash('error', 'Error loading events');
+      return res.render('Admin/Events(Weijie)/ManageEvents', {
+        eventList: [],
+        successMsg: req.flash('success'),
+        errorMsg: req.flash('error')
+      });
+    }
+
+    res.render('Admin/Events(Weijie)/ManageEvents', {
+      eventList: eventList,
+      moment,
+      successMsg: req.flash('success'),
+      errorMsg: req.flash('error')
+    });
+  });
+});
+
+// GET route to fetch all gallery items
+app.get('/admin/gallery', (req, res) => {
+  const query = 'SELECT * FROM galleries';
+  
+  connection.query(query, (err, results) => {
+    if (err) {
+      req.flash('error', 'Error fetching gallery items');
+      return res.render('Admin/Gallary(Kal)/ManageGallery', {
+        galleryList: [],
+          message: req.flash('message'), // Pass the flash message if defined
+
+        successMsg: req.flash('success'),
+        errorMsg: req.flash('error')
+      });
+    }
+    
+    res.render('Admin/Gallery(Kal)/ManageGallery', {
+      galleryList: results,
+      successMsg: req.flash('success'),
+      errorMsg: req.flash('error')
+    });
+  });
+});
+// POST route to add a new gallery item
 
 
-// //   const sqlIGs = `SELECT id, name FROM interest_groups`;
 
-// //   connection.query(sqlEvents, (errEvents, eventResults) => {
-// //     if (errEvents) {
-// //       console.error("❌ Error fetching events:", errEvents);
-// //       req.flash("errorMsg", "Failed to retrieve events.");
-// //       return res.render("ManageAdminEvents", {
-// //         eventList: [],
-// //         igList: [],
-// //         successMsg: req.flash("successMsg"),
-// //         errorMsg: req.flash("errorMsg")
-// //       });
-// //     }
+// POST route to handle gallery item addition
+app.post('/admin/gallery/add', upload.single('media_url'), (req, res) => {
+  // Destructure form fields and file data
+  const { caption, upload_date, student_id, title, ig_id } = req.body;
+  const media_url = req.file ? '/uploads/' + req.file.filename : null; // Get the uploaded file's URL
 
-// //     connection.query(sqlIGs, (errIGs, igResults) => {
-// //       if (errIGs) {
-// //         console.error("❌ Error fetching IGs:", errIGs);
-// //         req.flash("errorMsg", "Failed to retrieve IG list.");
-// //         return res.render("ManageAdminEvents", {
-// //           eventList: eventResults,
-// //           igList: [],
-// //           successMsg: req.flash("successMsg"),
-// //           errorMsg: req.flash("errorMsg")
-// //         });
-// //       }
+  console.log(req.file);  // Logs file information (media_url)
+  console.log(req.body);  // Logs other form fields (title, caption, etc.)
 
-// //       res.render("AddAdminEvents", {
-// //         eventList: eventResults,
-// //         igList: igResults,
-// //         successMsg: req.flash("successMsg"),
-// //         errorMsg: req.flash("errorMsg")
-// //       });
-// //     });
-// //   });
-// // });
+  // Insert query to add gallery item into the database
+  const query = 'INSERT INTO galleries (media_url, caption, upload_date, student_id, title, ig_id) VALUES (?, ?, ?, ?, ?, ?)';
 
-// // app.get("/admin/events", (req, res) => {
-// //   const sql = `SELECT events.*, interest_groups.name 
-// //                FROM events 
-// //                INNER JOIN interest_groups ON events.ig_id = interest_groups.id`;
-// //   connection.query(sql, (err, results) => {
-// //     if (err) throw err;
-// //     res.render("ManageEventsAdmin", { eventList: results });
-// //   });
-// // });
-// // app.get('/admin/gallery', (req, res) => {
-// //   const query = `
-// //     SELECT g.*, s.name AS student_name, ig.name AS ig_name 
-// //     FROM galleries g 
-// //     JOIN students s ON g.student_id = s.id 
-// //     JOIN interest_groups ig ON g.ig_id = ig.id 
-// //     ORDER BY g.created_at DESC
-// //   `;
-// //   connection.query(query, (err, results) => {
-// //     if (err) {
-// //       req.flash('message', 'Error loading gallery.');
-// //       return res.redirect('/admin');
-// //     }
-// //     res.render('Admin/ManageGallery', {
-// //       galleryList: results,
-// //       message: req.flash('message'),
-// //       successMsg: req.flash('successMsg')
-// //     });
-// //   });
-// // });
+  connection.query(query, [media_url, caption, upload_date, student_id, title, ig_id], (err) => {
+    if (err) {
+      console.error('❌ Error adding new gallery item:', err);
+      req.flash('error', 'Error adding new gallery item');
+      return res.redirect('/admin/gallery');
+    }
+
+    req.flash('success', 'Gallery item added successfully');
+    res.redirect('/admin/gallery');
+  });
+});
+
+
+
+// GET route to render the "Add Gallery" page
+app.get('/admin/gallery/add', (req, res) => {
+  // Fetch Interest Groups (IGs) to populate the dropdown in the form
+  const query = 'SELECT id, name FROM interest_groups';
+
+  connection.query(query, (err, igList) => {
+    if (err) {
+      req.flash('error', 'Error loading interest groups');
+      return res.redirect('/admin/gallery');
+    }
+
+    // Render the Add Gallery page, passing the list of IGs
+    res.render('Admin/Gallary(Kal)/AddGallery', {
+      igList: igList,
+      message: req.flash('message'),
+
+      successMsg: req.flash('success'),
+      errorMsg: req.flash('error')
+    });
+  });
+});
+
+
+
+
+app.get('/admin/gallery', (req, res) => {
+  const query = `SELECT g.id, g.title, g.media_url, g.caption, g.upload_date, g.created_at, 
+                        ig.name AS ig_name 
+                 FROM galleries AS g 
+                 LEFT JOIN interest_groups AS ig ON g.ig_id = ig.id`;
+
+  connection.query(query, (err, galleryList) => {
+    if (err) {
+      req.flash('error', 'Error loading gallery items');
+      return res.render('Admin/Gallery(Kal)/ManageGallery', {
+        galleryList: [],
+        successMsg: req.flash('success'),
+        errorMsg: req.flash('error')
+      });
+    }
+    
+   res.render('Admin/Gallery(Kal)/ManageGallery', {
+  galleryList: galleryList,
+  successMsg: req.flash('success'),
+  errorMsg: req.flash('error')
+});
+
+  });
+});
+
+app.get('/admin/gallery/edit/:id', (req, res) => {
+  const { id } = req.params;
+  
+  const query = 'SELECT * FROM galleries WHERE id = ?';
+  
+  connection.query(query, [id], (err, result) => {
+    if (err || result.length === 0) {
+      req.flash('error', 'Gallery item not found');
+      return res.redirect('/admin/gallery');
+    }
+
+    res.render('Admin/Gallery(Kal)/EditGallery', {
+      gallery: result[0],
+      successMsg: req.flash('success'),
+      errorMsg: req.flash('error')
+    });
+  });
+});
+
+// POST route to update the gallery item
+app.post('/admin/gallery/edit/:id', (req, res) => {
+  const { id } = req.params;
+  const { media_url, caption, upload_date, student_id, title, ig_id } = req.body;
+  
+  const query = `UPDATE galleries SET media_url = ?, caption = ?, upload_date = ?, student_id = ?, 
+                 title = ?, ig_id = ? WHERE id = ?`;
+  
+  connection.query(query, [media_url, caption, upload_date, student_id, title, ig_id, id], (err) => {
+    if (err) {
+      req.flash('error', 'Error updating gallery item');
+      return res.redirect(`/admin/gallery/edit/${id}`);
+    }
+    
+    req.flash('success', 'Gallery item updated successfully');
+    res.redirect('/admin/gallery');
+  });
+});
+
+app.post('/admin/gallery/delete/:id', (req, res) => {
+  const { id } = req.params;
+
+  const query = 'DELETE FROM galleries WHERE id = ?';
+  
+  connection.query(query, [id], (err) => {
+    if (err) {
+      req.flash('error', 'Error deleting gallery item');
+      return res.redirect('/admin/gallery');
+    }
+    
+    req.flash('success', 'Gallery item deleted successfully');
+    res.redirect('/admin/gallery');
+  });
+});
 
 
 
@@ -641,80 +753,154 @@ app.post('/reset-password', async (req, res) => {
 // // });
 
 
-// // app.get('/admin/events/add', (req, res) => {
-// //   connection.query('SELECT * FROM interest_groups', (err, igList) => {
-// //     if (err) return res.send('Failed to load IG list');
-// //     res.render('Admin/AddEvents', { igList });
-// //   });
-// // });
+app.get('/admin/events/add', (req, res) => {
+  // Query to fetch all categories (interest groups)
+  const query = `SELECT * FROM ig_categories`;
+  
+  connection.query(query, (err, categories) => {
+    if (err) {
+      req.flash('error', 'Failed to load categories.');
+      return res.redirect('/admin/events');
+    }
 
-// // // Handle Add Event Submission
-// // app.post('/admin/events/add', (req, res) => {
-// //   const { name, date, location, ig_id, description } = req.body;
-// //   const sql = `INSERT INTO events (name, date, location, ig_id, description) 
-// //                VALUES (?, ?, ?, ?, ?)`;
-// //   connection.query(sql, [name, date, location, ig_id, description], (err) => {
-// //     if (err) return res.send('Failed to add event');
-// //     res.redirect('/admin/events');
-// //   });
-// // });
-// // // GET: Edit event form
-
-// // app.get('/admin/events/edit/:id', (req, res) => {
-// //   const eventId = req.params.id;
-// //   const query = 'SELECT * FROM events WHERE id = ?';
-// //   const igQuery = 'SELECT id, name FROM interest_groups'; // ✅ FIXED TABLE NAME
-
-// //   connection.query(query, [eventId], (err, eventResults) => {
-// //     if (err || eventResults.length === 0) {
-// //       return res.send("Event not found");
-// //     }
-
-// //     connection.query(igQuery, (igErr, igResults) => {
-// //       if (igErr) {
-// //         return res.send("Failed to load IG list");
-// //       }
-
-// //       res.render('Admin/EditEvents', {
-// //         event: eventResults[0],
-// //         igList: igResults
-// //       });
-// //     });
-// //   });
-// // });
+    // Render Add Event page with categories
+    res.render('Admin/Events(Weijie)/AddEvents', { 
+      ig_id: categories,
+      successMsg: req.flash('success'),
+      errorMsg: req.flash('error')
+    });
+  });
+});
 
 
 
-// // // POST: Update event
-// // app.post('/admin/events/edit/:id', (req, res) => {
-// //   const eventId = req.params.id;
-// //   const { name, date, location, ig_id, description } = req.body;
-// //   const query = `
-// //     UPDATE events
-// //     SET name = ?, date = ?, location = ?, ig_id = ?, description = ?
-// //     WHERE id = ?
-// //   `;
-
-// //   connection.query(query, [name, date, location, ig_id, description, eventId], (err) => {
-// //     if (err) {
-// //       console.error(err);
-// //       req.flash('error', 'Failed to update event');
-// //     } else {
-// //       req.flash('success', 'Event updated successfully');
-// //     }
-// //     res.redirect('/Admin/ManageEvents');
-// //   });
-// // });
 
 
-// // // Delete Event
-// // app.post('/admin/events/delete/:id', (req, res) => {
-// //   const eventId = req.params.id;
-// //   connection.query('DELETE FROM events WHERE id = ?', [eventId], (err) => {
-// //     if (err) return res.send('Failed to delete event');
-// //     res.redirect('/admin/events');
-// //   });
-// // });
+// POST route to add an event
+// // POST route to add a new event
+
+
+
+
+app.post('/admin/events/add', (req, res) => {
+  const { event_name, event_date, location, ig_id, event_description } = req.body;
+  console.log(ig_id)
+  // Validate if category_id exists in interest_groups
+  const checkCategoryQuery = 'SELECT id FROM interest_groups WHERE id = ?';
+  
+  connection.query(checkCategoryQuery, [ig_id], (err, result) => {
+    if (err) {
+      console.error(err);
+      req.flash('error', 'Error validating category ID');
+      return res.redirect('/admin/events/add');
+    }
+
+    if (result.length === 0) {
+      req.flash('error', 'Invalid Interest Group selected');
+      return res.redirect('/admin/events/add');
+    }
+
+    // Proceed to insert the event if category_id is valid
+    const query = `
+      INSERT INTO events ( ig_id,name, date, location,description)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+
+    connection.query(query, [ig_id,event_name, event_date, location, event_description], (err, results) => {
+      if (err) {
+        console.error(err);
+        req.flash('error', 'Failed to add event. Please try again.');
+        return res.redirect('/admin/events/add');
+      }
+      req.flash('success', 'Event added successfully!');
+      return res.redirect('/admin/events');
+    });
+  });
+});
+
+
+
+
+// GET: Edit event form
+// GET route to render the "Edit Event" page
+app.get('/admin/events/edit/:id', (req, res) => {
+  const eventId = req.params.id;
+
+  // Query to fetch the event details by ID
+  const eventQuery = `
+    SELECT ev.id, ev.name, ev.date, ev.location, ev.description, ev.ig_id
+    FROM events AS ev
+    WHERE ev.id = ?
+  `;
+  
+  // Query to fetch the list of interest groups
+  const igQuery = `SELECT id, name FROM interest_groups`;
+
+  // Execute both queries concurrently
+  connection.query(eventQuery, [eventId], (err, eventResult) => {
+    if (err) {
+      req.flash('error', 'Error fetching event details');
+      return res.redirect('/admin/events');
+    }
+
+    connection.query(igQuery, (err, igResult) => {
+      if (err) {
+        req.flash('error', 'Error fetching interest groups');
+        return res.redirect('/admin/events');
+      }
+
+      // Render the Edit Event page, passing both the event and igList
+      res.render('Admin/Events(Weijie)/EditEvents', {
+        event: eventResult[0],  // Assuming only one event is returned
+        igList: igResult,       // List of interest groups
+        successMsg: req.flash('success'),
+        errorMsg: req.flash('error')
+      });
+    });
+  });
+});
+
+app.post('/admin/events/edit/:id', (req, res) => {
+  const { id } = req.params;
+  const { name, date, location, ig_id, description } = req.body;
+
+  // Update query to modify event details
+  const updateQuery = `
+    UPDATE events
+    SET name = ?, date = ?, location = ?, ig_id = ?, description = ?
+    WHERE id = ?
+  `;
+
+  connection.query(updateQuery, [name, date, location, ig_id, description, id], (err) => {
+    if (err) {
+      req.flash('error', 'Error updating event');
+      return res.redirect(`/admin/events/edit/${id}`);
+    }
+
+    req.flash('success', 'Event updated successfully');
+    res.redirect('/admin/events');
+  });
+});
+
+
+// POST route to delete an Event
+app.post('/admin/events/delete/:id', (req, res) => {
+  const { id } = req.params;
+
+  // Deleting the event by its ID
+  const deleteQuery = 'DELETE FROM events WHERE id = ?';
+
+  connection.query(deleteQuery, [id], (err) => {
+    if (err) {
+      req.flash('error', 'Failed to delete event');
+    } else {
+      req.flash('success', 'Event deleted successfully');
+    }
+
+    res.redirect('/admin/events');
+  });
+});
+
 
 
 // // ✅ GET Admin Profile Page
@@ -969,6 +1155,7 @@ app.post('/admin/manage-igs/delete/:id', (req, res) => {
     res.redirect('/admin/manage-igs');
   });
 });
+
 
 
 // GET route to render the Edit IG page
