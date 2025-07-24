@@ -74,91 +74,108 @@ const authUser = (req, res, next) => {
 
 // ✅ View All Announcements (Manage Page)
 
+app.get('/admin/announcements', (req, res) => {
+  // Set filter to show only 'admin' target audience announcements
+  const filterTargetAudience = 'Admins';
+
+  // Build the query to fetch only admin announcements
+  let query = 'SELECT * FROM announcements WHERE target_audience = ?';
+  const params = [filterTargetAudience];  // Filter for only 'admin' audience
+
+  // Execute the query
+  connection.query(query, params, (err, results) => {
+    if (err) {
+      req.flash('error', 'Error fetching announcements');
+      return res.redirect('/admin');
+    }
+
+    // Render the announcements page with the filtered results
+    res.render('Admin/Announcement(Weijie)/manageAnnouncements', {
+      announcements: results, // Send fetched announcements to the view
+      successMsg: req.flash('success'),
+      errorMsg: req.flash('error'),
+    });
+  });
+});
 
 
 
-// // // 📢 View All Announcements
-// // app.get('/admin/announcements', (req, res) => {
-// //   connection.query('SELECT * FROM announcements ORDER BY created_at DESC', (err, results) => {
-// //     if (err) {
-// //       req.flash('error', '❌ Failed to load announcements.');
-// //       return res.redirect('/admin');
-// //     }
-// //     res.render('admin/manageAnnouncements', { announcements: results });
-// //   });
-// // });
-
-// // // ➕ Show Add Announcement Form
-// // app.get('/admin/announcements/add', (req, res) => {
-// //   res.render('admin/addAnnouncement');
-// // });
-
-// // // ✅ Handle Add Announcement
-// // app.post('/admin/announcements/add', (req, res) => {
-// //   const { title, message, target_audience } = req.body;
-
-// //   connection.query(
-// //     'INSERT INTO announcements (title, message, target_audience, created_at) VALUES (?, ?, ?, NOW())',
-// //     [title, message, target_audience],
-// //     (err) => {
-// //       if (err) {
-// //         console.error('❌ SQL INSERT ERROR:', err);  // LOG this
-// //         req.flash('error', 'Failed to add announcement.');
-// //         return res.redirect('/admin/announcements/add');
-// //       }
-// //       req.flash('success', 'Announcement added successfully!');
-// //       res.redirect('/admin/announcements');
-// //     }
-// //   );
-// // });
 
 
-// // // ✏️ Show Edit Form
-// // app.get('/admin/announcements/edit/:id', (req, res) => {
-// //   const id = req.params.id;
+// ➕ Show Add Announcement Form
+app.get('/admin/announcements/add', (req, res) => {
+  res.render('Admin/Announcement(Weijie)/addAnnouncement');
+});
 
-// //   connection.query('SELECT * FROM announcements WHERE id = ?', [id], (err, results) => {
-// //     if (err || results.length === 0) {
-// //       req.flash('error', 'Announcement not found.');
-// //       return res.redirect('/admin/announcements');
-// //     }
-// //     res.render('admin/editAnnouncement', { announcement: results[0] });
-// //   });
-// // });
+// ✅ Handle Add Announcement
+app.post('/admin/announcements/add', (req, res) => {
+  const { title, message, target_audience } = req.body;
 
-// // // ✏️ Handle Edit Announcement
-// // app.post('/admin/announcements/edit/:id', (req, res) => {
-// //   const id = req.params.id;
-// //   const { title, message, target_audience } = req.body;
+ 
 
-// //   connection.query(
-// //     'UPDATE announcements SET title = ?, message = ?, target_audience = ? WHERE id = ?',
-// //     [title, message, target_audience, id],
-// //     (err) => {
-// //       if (err) {
-// //         req.flash('error', 'Failed to update announcement.');
-// //         return res.redirect('/admin/announcements');
-// //       }
-// //       req.flash('success', 'Announcement updated successfully!');
-// //       res.redirect('/admin/announcements');
-// //     }
-// //   );
-// // });
+    query='INSERT INTO announcements (title, message, target_audience, created_at) VALUES (?, ?, ?, NOW())'
+
+  const values = [title, message, target_audience]
+
+  connection.query(query, values, (err) => {
+    if (err) {
+      console.error('❌ SQL INSERT ERROR:', err);  // LOG this
+      req.flash('error', 'Failed to add announcement.');
+      return res.redirect('/admin/announcements/add');
+    }
+    req.flash('success', 'Announcement added successfully!');
+    res.redirect('/admin/announcements');
+  });
+});
 
 
-// // // 🗑️ Handle Delete
-// // app.post('/admin/announcements/delete/:id', (req, res) => {
-// //   const id = req.params.id;
 
-// //   connection.query('DELETE FROM announcements WHERE id = ?', [id], (err) => {
-// //     if (err) {
-// //       req.flash('error', '❌ Failed to delete announcement.');
-// //     } else {
-// //       req.flash('success', '✅ Announcement deleted successfully!');
-// //     }
-// //     res.redirect('/admin/announcements');
-// //   });
-// // });
+// ✏️ Show Edit Form
+app.get('/admin/announcements/edit/:id', (req, res) => {
+  const id = req.params.id;
+
+  connection.query('SELECT * FROM announcements WHERE id = ?', [id], (err, results) => {
+    if (err || results.length === 0) {
+      req.flash('error', 'Announcement not found.');
+      return res.redirect('/admin/announcements');
+    }
+    res.render('Admin/Announcement(Weijie)/editAnnouncement', { announcement: results[0] });
+  });
+});
+
+// ✏️ Handle Edit Announcement
+app.post('/admin/announcements/edit/:id', (req, res) => {
+  const id = req.params.id;
+  const { title, message, target_audience } = req.body;
+
+  connection.query(
+    'UPDATE announcements SET title = ?, message = ?, target_audience = ? WHERE id = ?',
+    [title, message, target_audience, id],
+    (err) => {
+      if (err) {
+        req.flash('error', 'Failed to update announcement.');
+        return res.redirect('/admin/announcements');
+      }
+      req.flash('success', 'Announcement updated successfully!');
+      res.redirect('/admin/announcements');
+    }
+  );
+});
+
+
+// 🗑️ Handle Delete
+app.post('/admin/announcements/delete/:id', (req, res) => {
+  const id = req.params.id;
+
+  connection.query('DELETE FROM announcements WHERE id = ?', [id], (err) => {
+    if (err) {
+      req.flash('error', '❌ Failed to delete announcement.');
+    } else {
+      req.flash('success', '✅ Announcement deleted successfully!');
+    }
+    res.redirect('/admin/announcements');
+  });
+});
 
 
 
@@ -208,27 +225,33 @@ app.get('/admin/events', (req, res) => {
 
 // GET route to fetch all gallery items
 app.get('/admin/gallery', (req, res) => {
-  const query = 'SELECT * FROM galleries';
-  
-  connection.query(query, (err, results) => {
+
+
+  const query = `SELECT g.id, g.title, g.media_url, g.caption, g.upload_date, g.created_at, 
+                        ig.name AS ig_name 
+                 FROM galleries AS g 
+                 LEFT JOIN interest_groups AS ig ON g.ig_id = ig.id`;
+
+  connection.query(query, (err, galleryList) => {
     if (err) {
-      req.flash('error', 'Error fetching gallery items');
+      req.flash('error', 'Error loading gallery items');
       return res.render('Admin/Gallary(Kal)/ManageGallery', {
         galleryList: [],
-          message: req.flash('message'), // Pass the flash message if defined
-
         successMsg: req.flash('success'),
-        errorMsg: req.flash('error')
+        errorMsg: req.flash('error'),
+        user: req.session.user  // Pass user info for role checking
       });
     }
-    
+
     res.render('Admin/Gallary(Kal)/ManageGallery', {
-      galleryList: results,
+      galleryList: galleryList,
       successMsg: req.flash('success'),
-      errorMsg: req.flash('error')
+      errorMsg: req.flash('error'),
+      user: req.session.user  // Pass user info for role checking
     });
   });
 });
+
 // POST route to add a new gallery item
 
 
@@ -320,7 +343,7 @@ app.get('/admin/gallery/edit/:id', (req, res) => {
       return res.redirect('/admin/gallery');
     }
 
-    res.render('Admin/Gallery(Kal)/EditGallery', {
+    res.render('Admin/Gallary(Kal)/EditGallary', {
       gallery: result[0],
       successMsg: req.flash('success'),
       errorMsg: req.flash('error')
@@ -329,39 +352,84 @@ app.get('/admin/gallery/edit/:id', (req, res) => {
 });
 
 // POST route to update the gallery item
-app.post('/admin/gallery/edit/:id', (req, res) => {
-  const { id } = req.params;
-  const { media_url, caption, upload_date, student_id, title, ig_id } = req.body;
+
+app.post('/admin/gallery/edit/:id', upload.single('media_image'), (req, res) => {
+  const galleryId = req.params.id;
+  const { title, caption, ig_id, student_id, upload_date } = req.body;
+
+  // Fetch the existing gallery details from the database to retain old media_url if no new image is uploaded
+  const querySelect = 'SELECT * FROM galleries WHERE id = ?';
   
-  const query = `UPDATE galleries SET media_url = ?, caption = ?, upload_date = ?, student_id = ?, 
-                 title = ?, ig_id = ? WHERE id = ?`;
-  
-  connection.query(query, [media_url, caption, upload_date, student_id, title, ig_id, id], (err) => {
-    if (err) {
-      req.flash('error', 'Error updating gallery item');
-      return res.redirect(`/admin/gallery/edit/${id}`);
+  connection.query(querySelect, [galleryId], (err, results) => {
+    if (err || results.length === 0) {
+      console.error('Error fetching gallery:', err);
+      req.flash('error', 'Gallery not found');
+      return res.redirect('/admin/gallery');
     }
-    
-    req.flash('success', 'Gallery item updated successfully');
-    res.redirect('/admin/gallery');
+
+    const existingGallery = results[0]; // Existing gallery data
+
+    // Get the new media URL if a new image is uploaded, otherwise use the existing media_url
+    const newMediaUrl = req.file ? `/uploads/${req.file.filename}` : existingGallery.media_url;
+
+    // Update the gallery in the database with the new values
+    const queryUpdate = `
+      UPDATE galleries 
+      SET title = ?, caption = ?, media_url = ?, ig_id = ?, student_id = ?, upload_date = ? 
+      WHERE id = ?
+    `;
+
+    connection.query(queryUpdate, [title, caption, newMediaUrl, ig_id, student_id, upload_date, galleryId], (err, result) => {
+      if (err) {
+        console.error('Error updating gallery:', err);
+        req.flash('error', 'Failed to update gallery');
+        return res.redirect(`/admin/gallery/edit/${galleryId}`);
+      }
+
+      req.flash('success', 'Gallery updated successfully');
+      res.redirect('/admin/gallery');
+    });
   });
 });
 
 app.post('/admin/gallery/delete/:id', (req, res) => {
   const { id } = req.params;
-
-  const query = 'DELETE FROM galleries WHERE id = ?';
   
-  connection.query(query, [id], (err) => {
+  // Check if ID is valid
+  if (!id) {
+    req.flash('error', 'No ID provided');
+    return res.redirect('/admin/gallery');
+  }
+
+  console.log(`Deleting gallery with ID: ${id}`);
+
+  // First, delete the comments related to this gallery
+  const deleteCommentsQuery = 'DELETE FROM gallery_comments WHERE gallery_id = ?';
+  
+  connection.query(deleteCommentsQuery, [id], (err) => {
     if (err) {
-      req.flash('error', 'Error deleting gallery item');
+      console.error('Error deleting comments:', err);
+      req.flash('error', 'Error deleting gallery comments');
       return res.redirect('/admin/gallery');
     }
+
+    // Then, delete the gallery
+    const deleteGalleryQuery = 'DELETE FROM galleries WHERE id = ?';
     
-    req.flash('success', 'Gallery item deleted successfully');
-    res.redirect('/admin/gallery');
+    connection.query(deleteGalleryQuery, [id], (err) => {
+      if (err) {
+        console.error('Error deleting gallery:', err);
+        req.flash('error', 'Error deleting gallery item');
+        return res.redirect('/admin/gallery');
+      }
+
+      req.flash('success', 'Gallery item deleted successfully');
+      res.redirect('/admin/gallery');
+    });
   });
 });
+
+
 
 
 
@@ -409,6 +477,59 @@ app.get("/logout", (req, res) => {
 // // });
 
 
+// Route to fetch comments for a specific gallery item
+app.get('/admin/gallery/comments/:id', (req, res) => {
+  const galleryId = req.params.id;
+
+  const query = `
+    SELECT c.comment, c.created_at, s.name AS student_name
+    FROM gallery_comments c
+    JOIN students s ON c.student_id = s.id
+    WHERE c.gallery_id = ?
+    ORDER BY c.created_at DESC
+  `;
+
+  connection.query(query, [galleryId], (err, results) => {
+    if (err) {
+      console.error('Error fetching comments:', err);
+      return res.status(500).json({ error: 'Failed to load comments' });
+    }
+
+    res.json(results); // Send the comments as a JSON response
+  });
+});
+
+app.post('/admin/gallery/:id/comment', (req, res) => {
+  const { id } = req.params;
+  const { comment } = req.body;
+
+  // Check if the user is authenticated and is an admin
+  if (!req.session.user || req.session.user.roles !== 'admin') {
+    return res.status(403).json({ error: "Access denied. Admins only." });
+  }
+
+  // Ensure comment isn't empty
+  if (!comment) {
+    return res.status(400).json({ error: "Comment cannot be empty." });
+  }
+
+  const user_id = req.session.user.id;  // Get user ID from session
+
+  const query = `
+    INSERT INTO gallery_comments (gallery_id, comment, user_id)
+    VALUES (?, ?, ?)
+  `;
+
+  connection.query(query, [id, comment, user_id], (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Error adding comment." });
+    }
+
+    // Respond with success
+    res.json({ success: true });
+  });
+});
 
 
 // // =======================
@@ -1524,105 +1645,170 @@ app.get("/admin",authUser  ,  async (req, res) => {
 // //   }
 // // });
 
-// app.get('/admin/achievements', (req, res) => {
-//   const sql = `
-//     SELECT sa.*, s.name AS student_name
-//     FROM student_achievements sa
-//     JOIN students s ON sa.student_id = s.id
-//     ORDER BY sa.date_awarded DESC
-//   `;
+app.get('/admin/achievements', (req, res) => {
+  const sql = `
+    SELECT sa.*, s.name AS student_name
+    FROM student_achievements sa
+    JOIN students s ON sa.student_id = s.id
+    ORDER BY sa.date_awarded DESC
+  `;
 
-//   connection.query(sql, (err, results) => {
-//     if (err) {
-//       console.error('MySQL Error:', err);
-//       return res.status(500).send('Database error');
-//     }
+  connection.query(sql, (err, results) => {
+    if (err) {
+      console.error('MySQL Error:', err);
+      return res.status(500).send('Database error');
+    }
+    res.render('Admin/Achievements(Kal)/manageAchievements', { achievements: results });
+  });
+});
 
-//     res.render('Admin/manageAchievements', { achievements: results });
-//   });
-// });
-// app.get('/admin/achievements/add', (req, res) => {
-//   connection.query('SELECT id, name FROM students', (err, students) => {
-//     if (err) return res.status(500).send('Database error.');
-//     res.render('Admin/addAchievement', { students });
-//   });
-// });
+// Fetch student data for the select dropdown
+app.get('/admin/achievements/add', (req, res) => {
+  connection.query('SELECT id, name FROM students', (err, students) => {
+    if (err) return res.status(500).send('Database error.');
+    res.render('Admin/Achievements(Kal)/addAchievement', { students });
+  });
+});
 
-// app.post('/admin/achievements/add', (req, res) => {
-//   const { student_id, title, description, date_awarded } = req.body;
+// POST route for adding achievements
+app.post('/admin/achievements/add', (req, res) => {
+  const { student_id, title, description, date_awarded } = req.body;
 
-//   const sql = `
-//     INSERT INTO student_achievements (student_id, title, description, date_awarded)
-//     VALUES (?, ?, ?, ?)
-//   `;
+  // SQL query to insert the achievement into the database
+  const sql = `
+    INSERT INTO student_achievements (student_id, title, description, date_awarded)
+    VALUES (?, ?, ?, ?)
+  `;
 
-//   connection.query(sql, [student_id, title, description, date_awarded], (err, result) => {
-//     if (err) {
-//       console.error(' Error inserting achievement:', err);
-//       return res.status(500).send('Database error.');
-//     }
+  // Execute the query with the provided data
+  connection.query(sql, [student_id, title, description, date_awarded], (err, result) => {
+    if (err) {
+      console.error('❌ Error inserting achievement:', err);
+      return res.status(500).send('Database error.');
+    }
 
-//     //  Redirect to achievements dashboard after success
-//     res.redirect('/admin/achievements');
-//   });
-// });
-
-
-// app.get('/admin/achievements/edit/:id', (req, res) => {
-//   const achievementId = req.params.id;
-
-//   const getAchievement = `
-//     SELECT * FROM student_achievements WHERE id = ?
-//   `;
-//   const getStudents = `
-//     SELECT id, name FROM students
-//   `;
-
-//   connection.query(getAchievement, [achievementId], (err, achievementResults) => {
-//     if (err || achievementResults.length === 0) {
-//       req.flash('error', 'Achievement not found.');
-//       return res.redirect('/admin/achievements');
-//     }
-
-//     const achievement = achievementResults[0];
-
-//     connection.query(getStudents, (err2, students) => {
-//       if (err2) {
-//         req.flash('error', 'Failed to fetch student list.');
-//         return res.redirect('/admin/achievements');
-//       }
-
-//       res.render('Admin/editAchievement', { achievement, students });
-//     });
-//   });
-// });
+    // Redirect to achievements dashboard after success
+    res.redirect('/admin/achievements');
+  });
+});
 
 
+// GET route to render the edit achievement page with existing achievement and students data
+app.get('/admin/achievements/edit/:id', (req, res) => {
+  const achievementId = req.params.id;
 
-// app.post('/achievements/edit/:id', (req, res) => {
-//   const achievementId = req.params.id;
-//   const { student_id, title, description, date_awarded } = req.body;
+  // Query to get the achievement details based on the provided id
+  const getAchievement = `
+    SELECT * FROM student_achievements WHERE id = ?
+  `;
+  const getStudents = `
+    SELECT id, name FROM students
+  `;
 
-//   const updateQuery = `
-//     UPDATE student_achievements
-//     SET student_id = ?, title = ?, description = ?, date_awarded = ?
-//     WHERE id = ?
-//   `;
+  // Fetch the achievement details from the database
+  connection.query(getAchievement, [achievementId], (err, achievementResults) => {
+    if (err || achievementResults.length === 0) {
+      req.flash('error', 'Achievement not found.');
+      return res.redirect('/admin/achievements');
+    }
 
-//   connection.query(updateQuery, [student_id, title, description, date_awarded, achievementId], (err, result) => {
-//     if (err) {
-//       console.error(' Error updating achievement:', err);
-//       return res.status(500).send('Database error.');
-//     }
+    const achievement = achievementResults[0];
 
-//     res.redirect('/admin/achievements');
-//   });
-// });
+    // Fetch the students list
+    connection.query(getStudents, (err2, students) => {
+      if (err2) {
+        req.flash('error', 'Failed to fetch student list.');
+        return res.redirect('/admin/achievements');
+      }
+
+      // Render the edit page with achievement and students data
+      res.render('Admin/Achievements(Kal)/editAchievement', { achievement, students });
+    });
+  });
+});
+
+// POST route to update the achievement details in the database
+app.post('/admin/achievements/edit/:id', (req, res) => {
+  const achievementId = req.params.id;
+  const { student_id, title, description, date_awarded } = req.body;
+
+  // Query to update the achievement details in the database
+  const updateQuery = `
+    UPDATE student_achievements
+    SET student_id = ?, title = ?, description = ?, date_awarded = ?
+    WHERE id = ?
+  `;
+
+  connection.query(updateQuery, [student_id, title, description, date_awarded, achievementId], (err, result) => {
+    if (err) {
+      console.error('Error updating achievement:', err);
+      req.flash('error', 'Error updating achievement.');
+      return res.redirect(`/admin/achievements/edit/${achievementId}`);
+    }
+
+    // Redirect back to the achievements list page after successful update
+    req.flash('success', 'Achievement updated successfully.');
+    res.redirect('/admin/achievements');
+  });
+});
+
+
+// GET route to render the edit achievement page with existing achievement and students data
+app.get('/admin/achievements/edit/:id', (req, res) => {
+  const achievementId = req.params.id;
+
+  // Query to get the achievement details based on the provided id
+  const getAchievement = `
+    SELECT * FROM student_achievements WHERE id = ?
+  `;
+  const getStudents = `
+    SELECT id, name FROM students
+  `;
+
+  // Fetch the achievement details from the database
+  connection.query(getAchievement, [achievementId], (err, achievementResults) => {
+    if (err || achievementResults.length === 0) {
+      req.flash('error', 'Achievement not found.');
+      return res.redirect('/admin/achievements');
+    }
+
+    const achievement = achievementResults[0];
+
+    // Fetch the students list
+    connection.query(getStudents, (err2, students) => {
+      if (err2) {
+        req.flash('error', 'Failed to fetch student list.');
+        return res.redirect('/admin/achievements');
+      }
+
+      // Render the edit page with achievement and students data
+      res.render('Admin/Achievements(Kal)/editAchievement', { achievement, students });
+    });
+  });
+});
+
+// Route to delete an achievement
+app.post('/admin/achievements/delete/:id', (req, res) => {
+  const achievementId = req.params.id;
+
+  // SQL query to delete the achievement from the database
+  const deleteQuery = 'DELETE FROM student_achievements WHERE id = ?';
+
+  connection.query(deleteQuery, [achievementId], (err, result) => {
+    if (err) {
+      console.error('Error deleting achievement:', err);
+      req.flash('error', 'Failed to delete achievement');
+      return res.redirect('/admin/achievements');
+    }
+
+    req.flash('success', 'Achievement deleted successfully');
+    res.redirect('/admin/achievements');
+  });
+});
 
 
 
 
-// // n
 
 // // app.get("Student/studentDashboard", authUser, (req, res) => {
 
@@ -1655,117 +1841,145 @@ app.get("/admin",authUser  ,  async (req, res) => {
 //   });
 // });
 
-// // Display all schedules with optional searchc
-// app.get('/admin/meeting_schedule', (req, res) => {
-//   const searchTerm = req.query.search || '';
+// Display all schedules with optional searchc
+app.get('/admin/meeting_schedule', (req, res) => {
+  const searchTerm = req.query.search || '';
 
-//   let sql = 'SELECT * FROM schedules';
-//   let params = [];
+  let sql = 'SELECT * FROM schedules';
+  let params = [];
 
-//   if (searchTerm) {
-//     sql += ' WHERE name LIKE ?';
-//     params.push(`%${searchTerm}%`);
-//   }
+  if (searchTerm) {
+    sql += ' WHERE name LIKE ?';
+    params.push(`%${searchTerm}%`);
+  }
 
-//   connection.query(sql, params, (err, results) => {
-//     if (err) throw err;
-//     res.render('Admin/meeting_schedule', {
-//       schedules: results,
-//       success: req.flash('success'),
-//       errors: req.flash('error'),
-//       searchTerm: searchTerm
-//     });
-//   });
-// });
+  connection.query(sql, params, (err, results) => {
+    if (err) throw err;
+    res.render('Admin/Meeting_schedule(Jiayi)/meeting_schedule', {
+      schedules: results,
+      success: req.flash('success'),
+      errors: req.flash('error'),
+      searchTerm: searchTerm
+    });
+  });
+});
 
-// // Show form to create new schedule
-// app.get('/admin/schedule/new', (req, res) => {
-//   res.render('Admin/new_schedule', {
-//     errors: req.flash('error'),
-//     success: req.flash('success')
-//   });
-// });
+// Route to render the form and fetch IG categories and IGs
+app.get('/admin/schedule/new', (req, res) => {
+  // Fetch IG categories from the database
+  connection.query('SELECT id, name FROM ig_categories', (err, categories) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Database query error");
+    }
 
-// // Handle creation of new schedule
-// app.post('/admin/schedule/new', (req, res) => {
-//   const { name, meeting_schedule, advisor } = req.body;
-//   console.log(name , meeting_schedule , advisor)
+    // Fetch interest groups (IGs)
+    connection.query('SELECT id, name FROM interest_groups', (err, igs) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send("Database query error");
+      }
 
-//   if (!name || !meeting_schedule || !advisor) {
-//     req.flash('error', 'All fields are required.');
-//     return res.redirect('/admin/schedule/new');
-//   }
+      // Render the form and pass IG categories and IGs to the template
+      res.render('Admin/Meeting_schedule(Jiayi)/new_schedule', {
+        categories, // Pass categories for IG categories dropdown
+        igs,        // Pass IGs for the IG name dropdown
+        errors: req.flash('error'),
+        success: req.flash('success')
+      });
+    });
+  });
+});
 
-//   connection.query(
-//     'INSERT INTO schedules (name, meeting_schedule, advisor) VALUES (?, ?, ?)',
-//     [name, meeting_schedule, advisor],
-//     (err) => {
-//       if (err) throw err;
-//       req.flash('success', 'Schedule created successfully!');
-//       res.redirect('/admin/meeting_schedule');
-//     }
-//   );
-// });
 
-// // Show form to edit a schedule
-// app.get('/admin/edit_schedule/:id', (req, res) => {
-//   const id = req.params.id;
+// Handle the creation of a new schedule (POST)
+app.post('/admin/schedule/new', (req, res) => {
+  const { name, meeting_schedule, advisor, category_id } = req.body;
 
-//   connection.query('SELECT * FROM schedules WHERE id = ?', [id], (err, results) => {
-//     if (err) throw err;
-//     if (results.length === 0) {
-//       req.flash('error', 'Schedule not found');
-//       return res.redirect('/admin/meeting_schedule');
-//     }
+  // Validate the input
+  if (!name || !meeting_schedule || !advisor || !category_id) {
+    req.flash('error', 'All fields are required.');
+    return res.redirect('/admin/schedule/new');
+  }
 
-//     res.render('Admin/edit_schedule', {
-//       ig: results[0],
-//       errors: req.flash('error'),
-//       success: req.flash('success')
-//     });
-//   });
-// });
+  // Insert the new schedule into the database
+  connection.query(
+    'INSERT INTO schedules (name, meeting_schedule, advisor, category_id) VALUES (?, ?, ?, ?)',
+    [name, meeting_schedule, advisor, category_id],
+    (err) => {
+      if (err) {
+        console.error(err);
+        req.flash('error', 'An error occurred while creating the schedule.');
+        return res.redirect('/admin/schedule/new');
+      }
 
-// // Handle update to a schedule
-// app.post('/admin/edit_schedule/:id', (req, res) => {
-//   const id = req.params.id;
-//   let { name, meeting_schedule, advisor } = req.body;
-
-//   if (!name || !meeting_schedule || !advisor) {
-//     req.flash('error', 'All fields are required.');
-//     return res.redirect(`/admin/edit_schedule/${id}`);
-//   }
-
-//   // Convert datetime-local (like '2025-07-23T14:30') to MySQL datetime format
-//   meeting_schedule = meeting_schedule.replace('T', ' ') + ':00';
-
-//   connection.query(
-//     'UPDATE schedules SET name = ?, meeting_schedule = ?, advisor = ? WHERE id = ?',
-//     [name, meeting_schedule, advisor, id],
-//     (err) => {
-//       if (err) throw err;
-//       req.flash('success', 'Schedule updated successfully!');
-//       res.redirect(`admin/edit_schedule/${id}`);
-//     }
-//   );
-// });
-
-// app.post('/admin/delete_schedule/:id', (req, res) => {
-//   const id = req.params.id;
-
-//   connection.query('DELETE FROM schedules WHERE id = ?', [id], (err, result) => {
-//     if (err) {
-//       req.flash('error', 'Failed to delete schedule.');
-//       return res.redirect('/meeting_schedule');
-//     }
-//     req.flash('success', 'Schedule deleted successfully.');
-//     res.redirect('admin/meeting_schedule');
-//   });
-// });
+      req.flash('success', 'Schedule created successfully!');
+      res.redirect('/admin/meeting_schedule'); // Redirect to meeting schedule page
+    }
+  );
+});
 
 
 
 
+// Show form to edit a schedule
+app.get('/admin/edit_schedule/:id', (req, res) => {
+  const id = req.params.id;
+
+  connection.query('SELECT * FROM schedules WHERE id = ?', [id], (err, results) => {
+    if (err) throw err;
+    if (results.length === 0) {
+      req.flash('error', 'Schedule not found');
+      return res.redirect('/admin/meeting_schedule');
+    }
+
+    res.render('Admin/Meeting_schedule(Jiayi)/edit_schedule', {
+      ig: results[0],
+      errors: req.flash('error'),
+      success: req.flash('success')
+    });
+  });
+});
+
+
+// Handle update to a schedule
+app.post('/admin/edit_schedule/:id', (req, res) => {
+  const id = req.params.id;
+  let { name, meeting_schedule, advisor } = req.body;
+
+  // Validate the input fields
+  if (!name || !meeting_schedule || !advisor) {
+    req.flash('error', 'All fields are required.');
+    return res.redirect(`/admin/edit_schedule/${id}`);
+  }
+
+  // Convert datetime-local (like '2025-07-23T14:30') to MySQL datetime format
+  meeting_schedule = meeting_schedule.replace('T', ' ') + ':00';
+
+  connection.query(
+    'UPDATE schedules SET name = ?, meeting_schedule = ?, advisor = ? WHERE id = ?',
+    [name, meeting_schedule, advisor, id],
+    (err) => {
+      if (err) throw err;
+      req.flash('success', 'Schedule updated successfully!');
+      // Use the correct redirection path
+      res.redirect(`/admin/meeting_schedule`);
+    }
+  );
+});
+
+app.post('/admin/delete_schedule/:id', (req, res) => {
+  const id = req.params.id;
+
+  connection.query('DELETE FROM schedules WHERE id = ?', [id], (err, result) => {
+    if (err) {
+      req.flash('error', 'Failed to delete schedule.');
+      return res.redirect('/admin/meeting_schedule');
+    }
+    req.flash('success', 'Schedule deleted successfully.');
+    res.redirect('/admin/meeting_schedule');
+  });
+});
 
 
 
