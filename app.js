@@ -222,7 +222,7 @@ app.get('/admin/gallery', (req, res) => {
       });
     }
     
-    res.render('Admin/Gallery(Kal)/ManageGallery', {
+    res.render('Admin/Gallary(Kal)/ManageGallery', {
       galleryList: results,
       successMsg: req.flash('success'),
       errorMsg: req.flash('error')

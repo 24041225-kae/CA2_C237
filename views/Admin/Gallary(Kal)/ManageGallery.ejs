@@ -130,17 +130,19 @@
       <div class="col-12 text-center text-muted">No gallery entries found.</div>
     <% } else { %>
       <% galleryList.forEach((g, index) => { %>
-        <div class="col-sm-12 col-md-6 col-lg-4 col-xl-3 gallery-card" data-title="<%= g.title.toLowerCase() %>" data-ig="<%= g.ig_name.toLowerCase() %>">
+        <div class="col-sm-12 col-md-6 col-lg-4 col-xl-3 gallery-card" data-title="<%= g.title ? g.title.toLowerCase() : '' %>" data-ig="<%= g.ig_name ? g.ig_name.toLowerCase() : '' %>">
           <div class="card h-100 shadow-sm">
-            <% if (g.media_url.endsWith('.mp4')) { %>
+            <% if (g.media_url && g.media_url.endsWith('.mp4')) { %>
               <video src="<%= g.media_url %>" class="card-img-top gallery-img" controls></video>
-            <% } else { %>
+            <% } else if (g.media_url) { %>
               <img src="<%= g.media_url %>" class="card-img-top gallery-img" alt="Gallery Media"/>
+            <% } else { %>
+              <img src="/img/default-gallery.jpg" class="card-img-top gallery-img" alt="Default Gallery"/>
             <% } %>
             <div class="card-body">
-              <h5 class="card-title"><%= g.title %></h5>
-              <p class="card-text mb-1"><i class="fas fa-user"></i> <%= g.student_name %></p>
-              <p class="card-text mb-1"><i class="fas fa-people-group"></i> <%= g.ig_name %></p>
+              <h5 class="card-title"><%= g.title || 'Untitled' %></h5>
+              <p class="card-text mb-1"><i class="fas fa-user"></i> <%= g.student_name || 'Unknown' %></p>
+              <p class="card-text mb-1"><i class="fas fa-people-group"></i> <%= g.ig_name || 'No IG' %></p>
               <p class="card-text"><i class="fas fa-calendar-alt"></i> <%= new Date(g.upload_date || g.created_at).toLocaleDateString('en-SG') %></p>
             </div>
             <div class="card-footer d-flex justify-content-between align-items-center">
