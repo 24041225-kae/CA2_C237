@@ -1085,7 +1085,7 @@ app.post('/admin/profile/update', upload.single('profileImage'), async (req, res
     await connection.execute(updateQuery, params);
     req.flash('success', 'Profile updated successfully');
   } catch (err) {
-    console.error('❌ Update error:', err);
+    console.error('Update error:', err);
     req.flash('error', 'Failed to update profile');
   }
 
@@ -1440,7 +1440,6 @@ app.get('/admin/manage-categories/edit/:id', (req, res) => {
   });
 });
 
-
 // POST route to delete a category
 app.post('/admin/manage-categories/delete/:id', (req, res) => {
   const { id } = req.params;
@@ -1450,27 +1449,6 @@ app.post('/admin/manage-categories/delete/:id', (req, res) => {
     res.redirect('/admin/manage-categories');
   });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // //WEIJIE #WEIJIE 
@@ -1616,12 +1594,6 @@ app.get("/admin",authUser  ,  async (req, res) => {
 
 
 // //////Admin ROUTES   
-
-
-
-
-
-
 
 // // app.get("/api/events", async (req, res) => {
 // //   try {
@@ -1880,7 +1852,7 @@ app.get('/admin/schedule/new', (req, res) => {
         console.error(err);
         return res.status(500).send("Database query error");
       }
-
+      console.log(igs)
       // Render the form and pass IG categories and IGs to the template
       res.render('Admin/Meeting_schedule(Jiayi)/new_schedule', {
         categories, // Pass categories for IG categories dropdown
@@ -1893,32 +1865,50 @@ app.get('/admin/schedule/new', (req, res) => {
 });
 
 
-// Handle the creation of a new schedule (POST)
 app.post('/admin/schedule/new', (req, res) => {
   const { name, meeting_schedule, advisor, category_id } = req.body;
-
+  
   // Validate the input
   if (!name || !meeting_schedule || !advisor || !category_id) {
     req.flash('error', 'All fields are required.');
     return res.redirect('/admin/schedule/new');
   }
 
-  // Insert the new schedule into the database
-  connection.query(
-    'INSERT INTO schedules (name, meeting_schedule, advisor, category_id) VALUES (?, ?, ?, ?)',
-    [name, meeting_schedule, advisor, category_id],
-    (err) => {
-      if (err) {
-        console.error(err);
-        req.flash('error', 'An error occurred while creating the schedule.');
-        return res.redirect('/admin/schedule/new');
-      }
-
-      req.flash('success', 'Schedule created successfully!');
-      res.redirect('/admin/meeting_schedule'); // Redirect to meeting schedule page
+  // Query to check if the interest group exists by its name
+  const sql = "SELECT name FROM interest_groups WHERE id = ?";
+  connection.query(sql, [name], (err, results) => {
+    if (err) {
+      console.error(err);
+      req.flash('error', 'An error occurred while checking the interest group.');
+      return res.redirect('/admin/schedule/new');
     }
-  );
+
+    if (results.length === 0) {
+      // If no interest group is found with that name
+      req.flash('error', 'No matching Interest Group found.');
+      return res.redirect('/admin/schedule/new');
+    } else {
+      // Use the first result (assuming unique names)
+
+      // Insert the new schedule with the retrieved interest group ID
+      connection.query(
+        'INSERT INTO schedules (name, meeting_schedule, advisor, category_id) VALUES (?, ?, ?, ?)',
+        [results[0].name, meeting_schedule, advisor, category_id],  // Insert the name of the IG
+        (err) => {
+          if (err) {
+            console.error(err);
+            req.flash('error', 'An error occurred while creating the schedule.');
+            return res.redirect('/admin/schedule/new');
+          }
+
+          req.flash('success', 'Schedule created successfully!');
+          res.redirect('/admin/meeting_schedule'); // Redirect to meeting schedule page
+        }
+      );
+    }
+  });
 });
+
 
 
 
@@ -1941,7 +1931,6 @@ app.get('/admin/edit_schedule/:id', (req, res) => {
     });
   });
 });
-
 
 // Handle update to a schedule
 app.post('/admin/edit_schedule/:id', (req, res) => {

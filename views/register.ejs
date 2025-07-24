@@ -15,7 +15,39 @@
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.4/lottie.min.js"></script>
+
   <style>
+    
+     /* Full-screen Loading Spinner Overlay */
+     /* Full-screen Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      visibility: visible;
+      opacity: 1;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    /* Styling the Lottie container */
+    #lottieLoading {
+      width: 150px;
+      height: 150px;
+    }
+
+    /* Hide overlay once page has loaded */
+    .loading-overlay.hidden {
+      visibility: hidden;
+      opacity: 0;
+    }
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -78,26 +110,51 @@
       cursor: pointer;
     }
 
-    .right-panel img {
-      max-height: 70vh;
-      object-fit: contain;
-      width: 100%;
+  
+    /* Right Panel (Lottie Animation) */
+    .right-panel {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      padding: 0;
+      text-align: center;
+      margin-top: 10%;
     }
 
+    .right-panel #lottie-container {
+      width: 100%;
+      max-width: 600px; /* Adjust the size for better visibility */
+      height: 100%;
+      aspect-ratio: calc(100% / 20%); /* Adjust aspect ratio for the Lottie animation */
+    }
+
+    /* Responsiveness */
     @media (max-width: 768px) {
-      .right-panel img {
-        max-height: 150px;
+      .right-panel {
+        margin-top: 20px;
       }
+
+      .right-panel #lottie-container {
+        max-width: 100%;
+        height: auto;
+      }
+
     }
   </style>
 </head>
 <body>
+    <!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <!-- Lottie animation container -->
+  <div id="lottieLoading"></div>
+</div>
 <div class="container-fluid">
   <div class="row flex-column flex-lg-row min-vh-100">
     <!-- Left: Register Form -->
     <div class="col-lg-6 d-flex flex-column justify-content-center left-panel">
       <div class="w-100" style="max-width: 450px; margin: 0 auto;">
-        <!-- ✅ Logo -->
+        <!-- Logo -->
         <div class="text-center mb-4">
           <img src="Images/IGConnect-logo-transparent.png" alt="IGConnect Logo" style="height: 200px;" />
         </div>
@@ -123,11 +180,11 @@
 </div>
   <!-- Real-time validation checklist -->
   <ul class="list-unstyled mt-2 ms-1" id="password-requirements" style="font-size: 0.9em;">
-    <li id="length" class="text-danger">❌ At least 8 characters</li>
-    <li id="uppercase" class="text-danger">❌ One uppercase letter</li>
-    <li id="lowercase" class="text-danger">❌ One lowercase letter</li>
-    <li id="number" class="text-danger">❌ One number</li>
-    <li id="symbol" class="text-danger">❌ One special character (@$!%*?#&)</li>
+    <li id="length" class="text-danger">At least 8 characters</li>
+    <li id="uppercase" class="text-danger">One uppercase letter</li>
+    <li id="lowercase" class="text-danger">One lowercase letter</li>
+    <li id="number" class="text-danger">One number</li>
+    <li id="symbol" class="text-danger">One special character (@$!%*?#&)</li>
   </ul>
 
 
@@ -151,14 +208,13 @@
       </div>
     </div>
 
-    <!-- Right: Branding Image -->
-    <div class="col-lg-6 right-panel d-flex align-items-center justify-content-center p-0">
-      <img src="/Images/Logins.jpg" alt="IGConnect Register Image" />
+   <div class="col-lg-6 right-panel d-flex align-items-center justify-content-center p-0">
+      <div id="lottie-container"></div>
     </div>
   </div>
 </div>
 
-<!-- ✅ Modal: Success -->
+<!-- Modal: Success -->
 <% if (successMsg && successMsg.length > 0) { %>
   <div class="modal fade" id="successModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -181,7 +237,7 @@
   </script>
 <% } %>
 
-<!-- ❌ Modal: Error -->
+<!--Modal: Error -->
 <% if (errorMsg && errorMsg.length > 0) { %>
   <div class="modal fade" id="errorModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -202,7 +258,7 @@
   </script>
 <% } %>
 
-<!-- 👁 Toggle Password -->
+<!-- Toggle Password -->
 <script>
   function togglePassword() {
     const input = document.getElementById('password');
@@ -230,32 +286,41 @@
 
     // Validation checks
     length.innerHTML = password.length >= 8
-      ? "✅ At least 8 characters"
-      : "❌ At least 8 characters";
+      ? "At least 8 characters"
+      : "At least 8 characters";
     length.className = password.length >= 8 ? "text-success" : "text-danger";
 
     uppercase.innerHTML = /[A-Z]/.test(password)
-      ? "✅ One uppercase letter"
-      : "❌ One uppercase letter";
+      ? "One uppercase letter"
+      : "One uppercase letter";
     uppercase.className = /[A-Z]/.test(password) ? "text-success" : "text-danger";
 
     lowercase.innerHTML = /[a-z]/.test(password)
-      ? "✅ One lowercase letter"
-      : "❌ One lowercase letter";
+      ? "One lowercase letter"
+      : "One lowercase letter";
     lowercase.className = /[a-z]/.test(password) ? "text-success" : "text-danger";
 
     number.innerHTML = /\d/.test(password)
-      ? "✅ One number"
-      : "❌ One number";
+      ? "One number"
+      : "One number";
     number.className = /\d/.test(password) ? "text-success" : "text-danger";
 
     symbol.innerHTML = /[@$!%*?#&]/.test(password)
-      ? "✅ One special character (@$!%*?#&)"
-      : "❌ One special character (@$!%*?#&)";
+      ? "One special character (@$!%*?#&)"
+      : "One special character (@$!%*?#&)";
     symbol.className = /[@$!%*?#&]/.test(password) ? "text-success" : "text-danger";
   }
+    lottie.loadAnimation({
+    container: document.getElementById('lottie-container'),
+    renderer: 'svg',
+    loop: true,
+    autoplay: true,
+    path: 'https://lottie.host/7218e007-7ff3-4ef2-810c-d63310104c2e/RUz7mVxROp.json'
+  });
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/loading.js"></script> 
+
 </body>
 </html>
