@@ -1854,6 +1854,7 @@ app.get('/admin/meeting_schedule', (req, res) => {
   }
 
   connection.query(sql, params, (err, results) => {
+    console.log(results)
     if (err) throw err;
     res.render('Admin/Meeting_schedule(Jiayi)/meeting_schedule', {
       schedules: results,
