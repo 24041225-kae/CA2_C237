@@ -8,217 +8,150 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.4/lottie.min.js"></script>
   <style>
-    html {
-      scroll-behavior: smooth;
-    }
-
-    .hover-grow {
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .hover-grow:hover {
-      transform: scale(1.03);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    }
-
+    html { scroll-behavior: smooth; }
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #fefeff;
-      margin: 0;
-      padding: 0;
     }
-
-    .navbar {
-      background: #ffffff;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-
-    .navbar-brand {
-      font-weight: bold;
-      color: #0077b6 !important;
-      font-size: 1.4rem;
-    }
-
-    .navbar-nav .nav-link {
-      color: #002244;
-      font-weight: 500;
-      transition: 0.3s;
-    }
-
-    .navbar-nav .nav-link:hover,
-    .navbar-nav .nav-link.active {
-      color: #0077b6;
-    }
-
-    .btn-outline-primary {
-      border-radius: 30px;
-      padding: 0.4rem 1.2rem;
-    }
-
+    .hover-grow { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .hover-grow:hover { transform: scale(1.03); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    .navbar { background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .navbar-brand { font-weight: bold; color: #0077b6 !important; font-size: 1.4rem; }
+    .navbar-nav .nav-link { color: #002244; font-weight: 500; transition: 0.3s; }
+    .navbar-nav .nav-link:hover, .navbar-nav .nav-link.active { color: #0077b6; }
     .hero {
       background: linear-gradient(to right, #e0f0ff, #fefeff);
-      position: relative;
-      height: 400px;
-      overflow: hidden;
-      text-align: center;
+      position: relative; height: 400px; overflow: hidden; text-align: center;
     }
-
-    #lottie-welcome svg {
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    .hero .overlay {
-      background: rgba(0, 0, 0, 0.4);
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 100%;
-      z-index: 1;
-    }
-
-    .hero .content {
-      z-index: 2;
-      position: relative;
-      color: white;
-    }
-
-    .stats-card {
-      background: #ffffff;
-      border-radius: 14px;
-      padding: 30px;
-      text-align: center;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s ease;
-    }
-
-    .stats-card:hover {
-      transform: translateY(-5px);
-    }
-
-    .section-title {
-      font-weight: 700;
-      font-size: 1.8rem;
-      color: #002244;
-      margin-top: 60px;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .card-style {
-      border-radius: 14px;
-      background: #ffffff;
-      padding: 25px;
-      height: 100%;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s ease;
-    }
-
-    .card-style:hover {
-      transform: translateY(-5px);
-    }
-
-    .fallback-card {
+    .hero .overlay { background: rgba(0,0,0,0.4); position: absolute; top: 0; left: 0; height: 100%; width: 100%; z-index: 1; }
+    .hero .content { z-index: 2; position: relative; color: white; }
+    .stats-card, .card-style {
       background: #fff;
-      text-align: center;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-      padding: 30px;
-      font-weight: 500;
+      border-radius: 14px;
+      padding: 25px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease;
     }
-
-    .icon {
-      font-size: 2.2rem;
-      margin-bottom: 12px;
+    .stats-card:hover, .card-style:hover { transform: translateY(-5px); }
+    .section-title {
+      font-weight: 700; font-size: 1.8rem; color: #002244;
+      margin-top: 60px; margin-bottom: 20px; text-align: center;
     }
-
+    .icon { font-size: 2.2rem; margin-bottom: 12px; }
     .fa-calendar-days { color: #34a0a4; }
     .fa-people-group { color: #0077b6; }
     .fa-bullhorn { color: #f94144; }
-
-    footer {
-      background: #002244;
-      color: #fff;
-      padding: 40px 0;
+    footer { background: #002244; color: #fff; padding: 40px 0; }
+    #scrollTopBtn {
+      position: fixed; bottom: 20px; right: 20px; z-index: 999; display: none;
     }
 
-    #scrollTopBtn {
+    /* Chatbot */
+    #chatbot-container {
       position: fixed;
-      bottom: 20px;
+      bottom: 80px;
       right: 20px;
       z-index: 999;
-      display: none;
     }
+    #chatbot-toggle {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      background: #0077b6;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    #chatbot-box {
+      display: none;
+      position: absolute;
+      bottom: 70px;
+      right: 0;
+      width: 300px;
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    #chatbot-header {
+      background: #0077b6;
+      color: white;
+      padding: 12px;
+      font-weight: bold;
+      text-align: center;
+    }
+    #chatbot-body {
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .bot-msg, .user-msg {
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .bot-msg {
+      background: #f1f1f1;
+      text-align: left;
+    }
+    .user-msg {
+      background: #d0f0ff;
+      text-align: right;
+    }
+    #chatbot-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+    #chatbot-input input {
+      flex: 1;
+      border: none;
+      padding: 10px;
+    }
+    #chatbot-input button {
+      background: #0077b6;
+      border: none;
+      color: white;
+      padding: 10px 12px;
+    }
+      .user-msg, .bot-msg {
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .user-msg {
+    background: #d0f0ff;
+    text-align: right;
+  }
+
+  .bot-msg {
+    background: #f1f1f1;
+    text-align: left;
+  }
   </style>
 </head>
 <body>
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light sticky-top">
-  <div class="container">
-    <a class="navbar-brand" href="/student/home">
-      <img src="/Images/IGConnect-logo-transparent.png" width="150" alt="IGConnect Logo" />
-    </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-      <ul class="navbar-nav me-3">
-        <li class="nav-item"><a class="nav-link <% if (activePage === 'events') { %>active<% } %>" href="/events"><i class="fa fa-calendar-days me-1"></i> Events</a></li>
-        <li class="nav-item"><a class="nav-link <% if (activePage === 'igs') { %>active<% } %>" href="/igs"><i class="fa fa-people-group me-1"></i> IGs</a></li>
-        <li class="nav-item"><a class="nav-link <% if (activePage === 'announcements') { %>active<% } %>" href="/announcements"><i class="fa fa-bullhorn me-1"></i> Announcements</a></li>
-        <li class="nav-item"><a class="nav-link <% if (activePage === 'profile') { %>active<% } %>" href="/profile"><i class="fa fa-user me-1"></i> Profile</a></li>
-        <li class="nav-item"><a class="nav-link <% if (activePage === 'achievements') { %>active<% } %>" href="/achievements"><i class="fa fa-trophy me-1"></i> Achievements</a></li>
-        <li class="nav-item"><a class="nav-link <% if (activePage === 'gallery') { %>active<% } %>" href="/gallery"><i class="fa fa-image me-1"></i> Gallery</a></li>
-        <li class="nav-item"><a class="nav-link <% if (activePage === 'schedule') { %>active<% } %>" href="/schedule"><i class="fa fa-clock me-1"></i> Schedule</a></li>
-      </ul>
-      <a href="/logout" class="btn btn-outline-primary">
-        <i class="fa fa-sign-out-alt me-1"></i> Logout
-      </a>
-    </div>
-  </div>
-</nav>
-
+<%- include('../partials/Student/Navbar') %>
 
 <!-- Hero -->
 <div class="hero d-flex align-items-center justify-content-center">
   <div id="lottie-welcome" class="position-absolute top-0 start-0 w-100 h-100"></div>
   <div class="overlay"></div>
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-md-10 col-lg-8 text-center content">
-        <h1 class="fw-bold display-5 text-white">Welcome, <%= student.fullname %>!</h1>
-        <p class="lead text-white">Your personalized IGConnect experience starts here.</p>
-        <a href="#dashboard" class="btn btn-danger mt-3">Explore Dashboard</a>
-      </div>
-    </div>
+  <div class="container content">
+    <h1 class="fw-bold display-5 text-white">Welcome, <%= student.fullname %>!</h1>
+    <p class="lead text-white">Your personalized IGConnect experience starts here.</p>
+    <a href="#dashboard" class="btn btn-danger mt-3">Explore Dashboard</a>
   </div>
 </div>
 
 <!-- Dashboard Section -->
 <div id="dashboard" class="container py-5 my-4">
-  <!-- Stats -->
+  <!-- Stats Cards -->
   <div class="row g-4 text-center">
-    <div class="col-md-4">
-      <div class="stats-card">
-        <div class="icon"><i class="fa fa-people-group"></i></div>
-        <h5><%= interestGroups.length %> Joined IGs</h5>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="stats-card">
-        <div class="icon"><i class="fa fa-calendar-days"></i></div>
-        <h5><%= events.length %> Upcoming Events</h5>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="stats-card">
-        <div class="icon"><i class="fa fa-bullhorn"></i></div>
-        <h5><%= announcements.length %> Announcements</h5>
-      </div>
-    </div>
+    <div class="col-md-4"><div class="stats-card"><div class="icon"><i class="fa fa-people-group"></i></div><h5><%= interestGroups.length %> Joined IGs</h5></div></div>
+    <div class="col-md-4"><div class="stats-card"><div class="icon"><i class="fa fa-calendar-days"></i></div><h5><%= events.length %> Upcoming Events</h5></div></div>
+    <div class="col-md-4"><div class="stats-card"><div class="icon"><i class="fa fa-bullhorn"></i></div><h5><%= announcements.length %> Announcements</h5></div></div>
   </div>
-
   <!-- Events -->
   <h2 class="section-title">Upcoming Events</h2>
   <div class="row g-4">
@@ -236,10 +169,10 @@
       <div class="col-12">
         <div class="row shadow rounded p-4 align-items-center hover-grow">
           <div class="col-md-6 text-center">
-            <img src="/Images/admin_background.jpg" class="img-fluid rounded" style="max-height: 200px;" />
+            <img src="/Images/Events.jpg" class="img-fluid rounded" style="max-height: 200px;" />
           </div>
           <div class="col-md-6 text-center">
-            <h5>No upcoming events at the moment. Stay tuned!</h5>
+            <h5>Time to explore some of the events that is happening now </h5>
             <a href="/events" class="btn btn-danger mt-2">Explore Events Now</a>
           </div>
         </div>
@@ -263,11 +196,11 @@
       <div class="col-12">
         <div class="row shadow rounded p-4 align-items-center hover-grow">
           <div class="col-md-6 text-center">
-            <img src="/Images/admin_background.jpg" class="img-fluid rounded" style="max-height: 200px;" />
+            <img src="/Images/IG.jpg" class="img-fluid rounded" style="max-height: 200px;" />
           </div>
           <div class="col-md-6 text-center">
-            <h5>You haven’t joined any IGs yet.</h5>
-            <a href="/igs" class="btn btn-danger mt-2">Explore IGs</a>
+            <h5>Explore different IG to see which is suitable</h5>
+            <a href="/students/igs" class="btn btn-danger mt-2">Explore IGs</a>
           </div>
         </div>
       </div>
@@ -450,30 +383,60 @@
 
 <!-- END DASHBOARD -->
 
-<!-- Footer -->
-<footer class="text-center mt-5">
-  <div class="container">
-    <p class="mb-1">&copy; <%= new Date().getFullYear() %> IGConnect. All rights reserved.</p>
-    <p class="small">Empowering students through meaningful interest group experiences.</p>
-  </div>
-</footer>
+
+<script>
+  function askChatbot() {
+    const input = document.getElementById('chatbotInput').value.trim();
+    const responseBox = document.getElementById('chatbotResponse');
+    if (!input) {
+      responseBox.innerHTML = `<div class="text-danger">Please enter a question.</div>`;
+      return;
+    }
+
+    // Simple hardcoded responses
+    let response = "I'm sorry, I didn't understand that.";
+    if (input.toLowerCase().includes('popular') || input.toLowerCase().includes('trending')) {
+      response = "📸 Photography Club is currently the most trending IG!";
+    } else if (input.toLowerCase().includes('event') || input.toLowerCase().includes('upcoming')) {
+      response = "🎤 Upcoming Event: Campus Talent Hunt is happening soon. Check the Events section!";
+    } else if (input.toLowerCase().includes('join')) {
+      response = "To join an IG, scroll to the 'Request to Join' section at the bottom of this page!";
+    }
+
+    responseBox.innerHTML = `<div class="alert alert-info mt-2">${response}</div>`;
+  }
+</script>
 
 <!-- Scroll to Top Button -->
 <button onclick="scrollToTop()" id="scrollTopBtn" class="btn btn-danger rounded-circle shadow">
   <i class="fa fa-arrow-up"></i>
 </button>
 
+<!-- Chatbot Floating -->
+<div id="chatbot-container">
+  <button id="chatbot-toggle"><i class="fa fa-robot"></i></button>
+  <div id="chatbot-box">
+    <div id="chatbot-header">Ask IGConnect</div>
+    <div id="chatbot-body">
+      <div id="chatbot-messages">
+        <div class="bot-msg">Hi! Ask me about your Interest Groups!</div>
+      </div>
+    </div>
+    <div id="chatbot-input">
+      <input type="text" id="chatbot-question" placeholder="Type your question..." />
+      <button onclick="sendChat()"><i class="fa fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<%- include('../partials/Student/footer') %>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.4/lottie.min.js"></script>
+
 <script>
-  // Scroll to top
-  function scrollToTop() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  window.onscroll = function() {
-    document.getElementById("scrollTopBtn").style.display =
-      window.pageYOffset > 300 ? "block" : "none";
-  };
-
   // Lottie animation
   lottie.loadAnimation({
     container: document.getElementById('lottie-welcome'),
@@ -482,7 +445,64 @@
     autoplay: true,
     path: 'https://lottie.host/4d3d005b-c9fd-42af-aec8-bdab3577291f/Z0UPikuoWc.json'
   });
+
+  // Scroll to Top
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  window.onscroll = () => {
+    document.getElementById("scrollTopBtn").style.display = window.pageYOffset > 300 ? "block" : "none";
+  };
+
+  // Toggle chatbot
+  const toggleBtn = document.getElementById("chatbot-toggle");
+  const chatbotBox = document.getElementById("chatbot-box");
+  toggleBtn.addEventListener("click", () => {
+    chatbotBox.style.display = chatbotBox.style.display === "block" ? "none" : "block";
+  });
+
+  // Chatbot logic
+  function sendChat() {
+    const input = document.getElementById('chatbot-question');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    const chatBox = document.getElementById('chatbot-messages');
+    chatBox.innerHTML += `<div class="user-msg">${msg}</div>`;
+    input.value = "";
+
+    setTimeout(() => {
+      const response = getBotReply(msg);
+      chatBox.innerHTML += `<div class="bot-msg">${response}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }, 600);
+  }
+
+  function getBotReply(msg) {
+    msg = msg.toLowerCase();
+    if (msg.includes("ig") || msg.includes("interest group")) {
+      return "You can explore various Interest Groups in categories like Sports, Arts, and Tech!";
+    }
+    if (msg.includes("category") || msg.includes("categories")) {
+      return "Our categories include: Sports, Arts, Tech, Community and Business!";
+    }
+    if (msg.includes("list")) {
+      return "Some IGs include: Robotics Club, Drama Club, Basketball Team, Art Society.";
+    }
+    if (msg.includes("join")) {
+      return "Scroll to the 'Request to Join' section at the bottom of this page!";
+    }
+    if (msg.includes("event") || msg.includes("upcoming")) {
+      return "🎤 Upcoming Event: Campus Talent Hunt is happening soon. Check the Events section!";
+    }
+    if (msg.includes("popular") || msg.includes("trending")) {
+      return "📸 Photography Club is currently the most trending IG!";
+    }
+    return "Sorry, I didn't get that! Try asking about 'IGs', 'categories', or say 'list IGs'.";
+  }
 </script>
+
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

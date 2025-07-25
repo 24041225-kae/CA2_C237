@@ -15,7 +15,6 @@
       font-family: 'Segoe UI', sans-serif;
     }
 
-    /* Header Style */
     .page-header {
       background: linear-gradient(to right, #2c3e50, #3498db);
       color: white;
@@ -33,44 +32,24 @@
       opacity: 0.8;
     }
 
-    .container {
-      margin-top: 30px;
-    }
-
-    /* Card Container */
-    .module-box {
-      background: white;
-      border-radius: 12px;
-      padding: 25px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    }
-
-    /* Table Styling */
-    .table thead {
-      background-color: #3498db;
-      color: white;
-    }
-
-    .table td, .table th {
-      vertical-align: middle;
-    }
-
-    /* Action Button Styling */
-    .btn-action {
-      margin: 0 4px;
-      transition: all 0.3s ease;
-    }
-
-    .btn-action:hover {
-      transform: scale(1.1);
-    }
-
-    /* Search Bar */
     .search-bar {
       max-width: 400px;
     }
 
-    /* Success/Error Alerts */
+    .card {
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 1.2rem;
+    }
+
+    .card-footer .btn {
+      font-size: 0.85rem;
+    }
+
     .alert {
       margin-bottom: 15px;
     }
@@ -86,7 +65,6 @@
 </header>
 
 <div class="container py-4">
-  <!-- Success/Error Flash Messages -->
   <% if (success && success.length > 0) { %>
     <div class="alert alert-success"><%= success[0] %></div>
   <% } %>
@@ -94,7 +72,6 @@
     <div class="alert alert-danger"><%= errors[0] %></div>
   <% } %>
 
-  <!-- Search Bar + New Schedule Button -->
   <div class="d-flex justify-content-between align-items-center mb-3">
     <form method="GET" action="/admin/meeting_schedule" class="d-flex search-bar">
       <input type="text" name="search" class="form-control me-2" placeholder="Search IG name" value="<%= searchTerm || '' %>">
@@ -105,64 +82,56 @@
     </a>
   </div>
 
-  <!-- Schedule Table -->
-  <div class="module-box">
-    <table class="table table-hover align-middle">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Interest Group</th>
-          <th>Meeting Schedule</th>
-          <th>Advisor</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (schedules.length === 0) { %>
-          <tr>
-            <td colspan="5" class="text-center text-muted">No meeting schedules found.</td>
-          </tr>
-        <% } else { %>
-          <% schedules.forEach((schedule, index) => { %>
-            <tr>
-              <td><%= index + 1 %></td>
-              <td><%= schedule.name  %></td>
-              <td><%= new Date(schedule.meeting_schedule).toLocaleString() %></td>
-              <td><%= schedule.advisor %></td>
-              <td>
-                <a href="/admin/edit_schedule/<%= schedule.id %>" class="btn btn-sm btn-primary btn-action">
-                  <i class="fas fa-edit"></i>
-                </a>
-                <button class="btn btn-sm btn-danger btn-action" data-bs-toggle="modal" data-bs-target="#deleteModal<%= schedule.id %>">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </td>
-            </tr>
+  <div class="row">
+    <% if (schedules.length === 0) { %>
+      <div class="col-12">
+        <div class="alert alert-info text-center">No meeting schedules found.</div>
+      </div>
+    <% } else { %>
+      <% schedules.forEach((schedule, index) => { %>
+        <div class="col-md-6 col-lg-4 mb-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title"><i class="fas fa-users me-1"></i> <%= schedule.name %></h5>
+              <p class="mb-1"><strong>Date:</strong> <%= new Date(schedule.meeting_schedule).toLocaleString() %></p>
+              <p class="mb-1"><strong>Advisor:</strong> <%= schedule.advisor || '-' %></p>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+              <a href="/admin/schedules/<%= schedule.id %>/rsvps" class="btn btn-sm btn-outline-success">
+                <i class="fas fa-eye"></i> RSVPs
+              </a>
+              <a href="/admin/edit_schedule/<%= schedule.id %>" class="btn btn-sm btn-primary">
+                <i class="fas fa-edit"></i> Edit
+              </a>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal<%= schedule.id %>">
+                <i class="fas fa-trash-alt"></i> Delete
+              </button>
+            </div>
+          </div>
+        </div>
 
-            <!-- Modal for Deleting Schedule -->
-            <div class="modal fade" id="deleteModal<%= schedule.id %>" tabindex="-1" aria-labelledby="deleteModalLabel<%= schedule.id %>" aria-hidden="true">
-              <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel<%= schedule.id %>">Confirm Deletion</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                    Are you sure you want to delete the schedule for "<%= schedule.name %>"?
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form method="POST" action="/admin/delete_schedule/<%= schedule.id %>" class="d-inline">
-                      <button type="submit" class="btn btn-danger">Yes, Delete</button>
-                    </form>
-                  </div>
-                </div>
+        <!-- Delete Modal -->
+        <div class="modal fade" id="deleteModal<%= schedule.id %>" tabindex="-1" aria-labelledby="deleteModalLabel<%= schedule.id %>" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel<%= schedule.id %>">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                Are you sure you want to delete the schedule for "<%= schedule.name %>"?
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="/admin/delete_schedule/<%= schedule.id %>" class="d-inline">
+                  <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                </form>
               </div>
             </div>
-          <% }) %>
-        <% } %>
-      </tbody>
-    </table>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
   </div>
 </div>
 

@@ -1,67 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>My Profile | IGConnect</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Profile | IGConnect</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
     body {
-      background: #f4f7fa;
-      font-family: 'Segoe UI', sans-serif;
+    background: #f8f9fa;
+  }
+
+    .form-section {
+      margin-bottom: 40px;
     }
-    .profile-card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 30px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    .readonly-field {
+      background-color: #e9ecef;
     }
-    .profile-img {
-      width: 140px;
-      height: 140px;
-      object-fit: cover;
-      border-radius: 50%;
-      border: 4px solid #0077b6;
+    .profile-upload-label {
+      cursor: pointer;
+      color: #007bff;
+      text-decoration: underline;
+      font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
-<div class="container mt-5">
-  <h2 class="mb-4 text-center text-primary">👤 My Profile</h2>
+<%- include("../../partials/Student/Navbar") %>
 
-  <% if (success) { %>
-    <div class="alert alert-success"><%= success %></div>
+<div class="container py-5">
+  <h2 class="text-center mb-4">Student Profile</h2>
+
+  <!-- Flash Modal -->
+  <% if (success || error) { %>
+    <div class="modal fade" id="flashModal" tabindex="-1" aria-labelledby="flashModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-<%= success ? 'success' : 'danger' %> text-white">
+            <h5 class="modal-title" id="flashModalLabel"><%= success ? 'Success' : 'Error' %></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center">
+            <%= success || error %>
+          </div>
+        </div>
+      </div>
+    </div>
   <% } %>
-  <% if (error) { %>
-    <div class="alert alert-danger"><%= error %></div>
-  <% } %>
 
-  <div class="row justify-content-center">
-    <div class="col-md-8">
-      <div class="profile-card text-center">
-        <img src="/uploads/<%= user.profile_image || 'default_avatar.png' %>" class="profile-img mb-3" alt="Profile Image">
-        <h4><%= user.fullname %></h4>
-        <p class="text-muted"><i class="fa fa-envelope me-2"></i><%= user.email %></p>
+  <!-- Profile Overview -->
+  <div class="card mb-4">
+    <div class="card-body text-center">
+      <img src="<%= student.profile_image ? '/uploads/' + student.profile_image : '/Images/default-avatar.png' %>" class="rounded-circle mb-2" width="120" height="120" alt="Profile">
+      
+      <form action="/student/profile/update" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="fullname" value="<%= student.fullname %>">
+        <input type="hidden" name="email" value="<%= student.email %>">
+        <input type="hidden" name="phone_number" value="<%= student.phone_number %>">
+        <input type="hidden" name="bio" value="<%= student.bio %>">
 
-        <form action="/student/profile/update" method="POST" enctype="multipart/form-data">
-          <div class="mb-3">
-            <label class="form-label">Full Name</label>
-            <input type="text" class="form-control" name="fullname" value="<%= user.fullname %>" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Username</label>
-            <input type="text" class="form-control" name="username" value="<%= user.username %>" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Update Profile Picture</label>
-            <input type="file" class="form-control" name="profileImage">
-          </div>
-          <button type="submit" class="btn btn-primary">Save Changes</button>
-          <a href="/student/profile/delete" class="btn btn-danger ms-2" onclick="return confirm('Are you sure you want to delete your account?')">Delete Profile</a>
-        </form>
+        <label for="profileImage" class="profile-upload-label">🖼️ Update Profile Image</label><br>
+        <input type="file" name="profileImage" id="profileImage" accept="image/*" class="form-control-sm mt-1 mb-3">
+        <br>
+        <button type="submit" class="btn btn-sm btn-outline-primary">Upload</button>
+      </form>
+
+      <h5 class="card-title mt-3"><%= student.fullname %></h5>
+      <p class="card-text text-muted"><%= student.email %> <span class="badge bg-primary ms-2">Verified</span></p>
+    </div>
+  </div>
+
+  <!-- Personal Info -->
+  <div class="card form-section">
+    <div class="card-header">Update Personal Info</div>
+    <div class="card-body">
+      <form action="/student/profile/update" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label class="form-label">Full Name</label>
+          <input type="text" name="fullname" class="form-control" value="<%= student.fullname %>" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email Address</label>
+          <input type="email" name="email" class="form-control" value="<%= student.email %>" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Phone Number</label>
+          <input type="tel" name="phone_number" class="form-control" value="<%= student.phone_number %>" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Bio</label>
+          <textarea name="bio" class="form-control" rows="3"><%= student.bio %></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Account Info (same as before) -->
+  <div class="card form-section">
+    <div class="card-header">Account Information</div>
+    <div class="card-body">
+      <div class="mb-3">
+        <label class="form-label">Role</label>
+        <input class="form-control readonly-field" value="<%= student.roles %>" readonly>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Last Login</label>
+        <input class="form-control readonly-field" value="<%= student.last_login ? new Date(student.last_login).toLocaleString('en-SG') : 'N/A' %>" readonly>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Last Browser</label>
+        <input class="form-control readonly-field" value="<%= student.last_browser || 'Unknown' %>" readonly>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Login Status</label>
+        <input class="form-control readonly-field" value="<%= student.login_success ? '✅ Successful' : '❌ Failed' %>" readonly>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Account Created</label>
+        <input class="form-control readonly-field" value="<%= student.created_at ? new Date(student.created_at).toLocaleString('en-SG') : 'N/A' %>" readonly>
       </div>
     </div>
   </div>
+
+  <!-- Reset Password (same as before) -->
+  <div class="card form-section">
+    <div class="card-header">Reset Password</div>
+    <div class="card-body">
+      <form action="/student/profile/reset-password" method="POST">
+        <div class="mb-3">
+          <label class="form-label">New Password</label>
+          <input type="password" name="newPassword" id="newPassword" class="form-control" required>
+        </div>
+        <div class="progress mb-2" style="height: 6px;">
+          <div id="strengthBar" class="progress-bar" style="width: 0%"></div>
+        </div>
+        <ul class="text-muted small ps-3" id="passwordHints">
+          <li id="length" class="text-danger">❌ At least 8 characters</li>
+          <li id="uppercase" class="text-danger">❌ One uppercase letter</li>
+          <li id="number" class="text-danger">❌ One number</li>
+          <li id="special" class="text-danger">❌ One special character</li>
+        </ul>
+        <div class="mb-3">
+          <label class="form-label">Confirm Password</label>
+          <input type="password" name="confirmPassword" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-warning">Change Password</button>
+      </form>
+    </div>
+  </div>
 </div>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const pw = document.getElementById('newPassword');
+  const bar = document.getElementById('strengthBar');
+  const hints = {
+    length: document.getElementById('length'),
+    uppercase: document.getElementById('uppercase'),
+    number: document.getElementById('number'),
+    special: document.getElementById('special')
+  };
+
+  if (pw) {
+    pw.addEventListener('input', () => {
+      const val = pw.value;
+      const checks = {
+        length: val.length >= 8,
+        uppercase: /[A-Z]/.test(val),
+        number: /[0-9]/.test(val),
+        special: /[^A-Za-z0-9]/.test(val)
+      };
+
+      let score = 0;
+      for (let key in checks) {
+        if (checks[key]) {
+          hints[key].className = 'text-success';
+          hints[key].innerHTML = '✅ ' + hints[key].innerText.slice(2);
+          score++;
+        } else {
+          hints[key].className = 'text-danger';
+          hints[key].innerHTML = '❌ ' + hints[key].innerText.slice(2);
+        }
+      }
+
+      const width = score * 25;
+      bar.style.width = width + '%';
+      bar.className = 'progress-bar ' + (width === 100 ? 'bg-success' : width >= 50 ? 'bg-warning' : 'bg-danger');
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const flashModal = document.getElementById('flashModal');
+    if (flashModal) {
+      const modal = new bootstrap.Modal(flashModal);
+      modal.show();
+    }
+  });
+</script>
+<%- include("../../partials/Student/footer") %>
+
 </body>
 </html>

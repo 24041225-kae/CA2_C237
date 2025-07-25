@@ -1,47 +1,52 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3 sticky-top">
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow sticky-top">
   <div class="container">
-    <!-- Logo -->
-    <a class="navbar-brand fw-bold d-flex align-items-center" href="/admin/dashboard">
-      <img src="/images/igconnect_logo.png" alt="IGConnect Logo" width="40" class="me-2">
-      <span style="color: #002244;">IGConnect Admin</span>
+    <a class="navbar-brand" href="/students/dashboard">
+      <img src="/Images/IGConnect-logo-transparent.png" width="150" alt="IGConnect Logo" />
     </a>
-
-    <!-- Toggler for mobile -->
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin" aria-controls="navbarAdmin" aria-expanded="false" aria-label="Toggle navigation">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
-
-    <!-- Nav links -->
-    <div class="collapse navbar-collapse" id="navbarAdmin">
-      <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav me-3">
         <li class="nav-item">
-          <a class="nav-link <%= activePage === 'dashboard' ? 'active fw-bold' : '' %>" href="/admin/dashboard">Dashboard</a>
+          <a class="nav-link <% if (activePage === 'events') { %>active<% } %>" href="/events">
+            <i class="fa fa-calendar-days me-1"></i> Events
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= activePage === 'manage_igs' ? 'active fw-bold' : '' %>" href="/admin/manage-igs">Manage IGs</a>
+          <a class="nav-link <% if (activePage === 'igs') { %>active<% } %>" href="/students/igs">
+            <i class="fa fa-people-group me-1"></i> IGs
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= activePage === 'events' ? 'active fw-bold' : '' %>" href="/admin/manage-events">Events</a>
+          <a class="nav-link <% if (activePage === 'announcements') { %>active<% } %>" href="/students/announcements">
+            <i class="fa fa-bullhorn me-1"></i> Announcements
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= activePage === 'announcements' ? 'active fw-bold' : '' %>" href="/admin/manage-announcements">Announcements</a>
+          <a class="nav-link <% if (activePage === 'profile') { %>active<% } %>" href="/student/profile">
+            <i class="fa fa-user me-1"></i> Profile
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= activePage === 'gallery' ? 'active fw-bold' : '' %>" href="/admin/manage-gallery">Gallery</a>
+          <a class="nav-link <% if (activePage === 'achievements') { %>active<% } %>" href="/students/achievements">
+            <i class="fa fa-trophy me-1"></i> Achievements
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= activePage === 'join_requests' ? 'active fw-bold' : '' %>" href="/admin/manage-join-requests">Join Requests</a>
+          <a class="nav-link <% if (activePage === 'gallery') { %>active<% } %>" href="/students/gallery">
+            <i class="fa fa-image me-1"></i> Gallery
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= activePage === 'students' ? 'active fw-bold' : '' %>" href="/admin/manage-students">Students</a>
+          <a class="nav-link <% if (activePage === 'schedule') { %>active<% } %>" href="/students/schedule">
+            <i class="fa fa-clock me-1"></i> Schedule
+          </a>
         </li>
       </ul>
-
-      <!-- Profile / Sign Out -->
-      <div class="d-flex align-items-center">
-        <span class="me-3 fw-semibold text-dark">👤 <%= admin.username %></span>
-        <a href="/logout" class="btn btn-outline-danger">Sign Out</a>
-      </div>
+      <a href="/logout" class="btn btn-outline-primary">
+        <i class="fa fa-sign-out-alt me-1"></i> Logout
+      </a>
     </div>
   </div>
 </nav>

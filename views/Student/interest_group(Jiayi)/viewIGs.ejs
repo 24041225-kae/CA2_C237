@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interest Groups</title>
+</head>
+<body>
+    <h1>Interest Groups</h1>
+
+    <!-- Display any flash messages (error or success) -->
+    <% if (errorMsg.length > 0) { %>
+        <p style="color: red;"><%= errorMsg %></p>
+    <% } %>
+    <% if (successMsg.length > 0) { %>
+        <p style="color: green;"><%= successMsg %></p>
+    <% } %>
+
+    <!-- If there are Interest Groups, display them -->
+    <% if (igs.length > 0) { %>
+        <ul>
+            <% igs.forEach(ig => { %>
+                <li>
+                    <strong><%= ig.name %></strong><br>
+                    <%= ig.description %><br>
+                    <!-- No actions (join, leave, create) for Read-only -->
+                    <br>
+                </li>
+            <% }) %>
+        </ul>
+    <% } else { %>
+        <p>No Interest Groups available at the moment.</p>
+    <% } %>
+
+    <br>
+    <!-- Link back to student dashboard or other pages -->
+    <a href="/student/dashboard">Back to Dashboard</a>
+</body>
+</html>
