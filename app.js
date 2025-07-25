@@ -1672,10 +1672,6 @@ app.post('/admin/schedule/new',authUser , authAdmin ,(req, res) => {
   });
 });
 
-
-
-
-
 // Show form to edit a schedule
 app.get('/admin/edit_schedule/:id',authUser , authAdmin, (req, res) => {
   const id = req.params.id;
@@ -1849,38 +1845,6 @@ app.get('/admin/schedules',authUser , authAdmin,(req, res) => {
     });
   });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 app.get('/students/dashboard', authUser, (req, res) => {
@@ -2433,13 +2397,8 @@ app.post('/students/schedule/:id/rsvp',authUser , (req, res) => {
   });
 });
 
-
-
-
-
-
 // ---------- Start Server ----------
 app.listen(3000, () => {
-  console.log('🚀 Server is running on http://localhost:3000');
+  console.log('Server is running on http://localhost:3000');
 
 });
