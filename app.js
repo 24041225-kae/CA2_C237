@@ -13,10 +13,11 @@ const checkDiskSpace = require('check-disk-space').default;
 
 
 const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'Group5@123?',
-  database: 'igconnect',
+  host: '4t38n5.h.filess.io',
+  user: 'c237ca2group5_slavegulf',
+  port:3307,
+  password: 'b69eb482e0b1ce82afc48f207c3ef3b08594f27f',
+  database: 'c237ca2group5_slavegulf',
   connectTimeout:10000,
 
 });
