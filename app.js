@@ -728,7 +728,7 @@ app.post('/login', (req, res) => {
         if (isMatch) {
           req.session.user = user;
           req.flash('successMsg', 'Login successful!');
-          return res.redirect(user.roles === 'admin' ? '/admin' : '/studentDashboard');
+          return res.redirect(user.roles === 'admin' ? '/admin' : '/students/dashboard');
         } else {
           req.flash('errorMsg', 'Invalid email or password');
           return res.redirect('/login');
@@ -1540,6 +1540,24 @@ app.get("/admin",authUser  ,  async (req, res) => {
       date: moment(event.date).format('DD MMM YYYY'),
       ig_name: event.ig_name
     }));
+// 📨 IG Join Requests (latest 5)
+// 📨 IG Join Requests (latest 5)
+const [joinRequests] = await connection.promise().query(`
+  SELECT r.id, s.name AS student_name, ig.name AS ig_name, r.status, r.request_date
+  FROM ig_join_requests r
+  JOIN students s ON r.student_id = s.id
+  JOIN interest_groups ig ON r.ig_id = ig.id
+  ORDER BY r.request_date DESC
+  LIMIT 5
+`);
+
+const recentJoinRequests = joinRequests.map(r => ({
+  student: r.student_name,
+  ig: r.ig_name,
+  status: r.status,
+    formatted_date: r.request_date ? moment(r.request_date).format("MMMM D, YYYY h:mm A") : "No Date"
+}));
+
 
     // 🗨️ Recent Comments
     const [recentComments] = await connection.promise().query(`
@@ -1583,6 +1601,8 @@ app.get("/admin",authUser  ,  async (req, res) => {
       storageUsage,
       lastBackup,
       totalAnnouments: totalAnnouments[0].count,
+        recentJoinRequests, // ✅ Add this
+
       moment
     });
 
@@ -2048,6 +2068,201 @@ app.post('/admin/profile/update', upload.single('profile_image'), (req, res) => 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+app.get('/students/dashboard', authUser, (req, res) => {
+  const studentId = req.session.user.id;
+
+  // Get student details
+  connection.query('SELECT * FROM users WHERE id = ? AND roles = "student"', [studentId], (err, studentResults) => {
+    if (err) throw err;
+    const student = studentResults[0];
+
+    // Get upcoming events linked via the student's interest groups
+    const eventsQuery = `
+      SELECT DISTINCT e.*
+      FROM events e
+      JOIN interest_groups ig ON e.id = ig.category_id
+      JOIN members m ON m.ig_id = ig.id
+      WHERE m.student_id = ? AND e.date >= NOW()
+    `;
+
+    connection.query(eventsQuery, [studentId], (err, eventResults) => {
+      if (err) throw err;
+
+      // Get the student's joined IGs
+      const joinedGroupsQuery = `
+        SELECT g.* FROM interest_groups g
+        JOIN members m ON g.id = m.ig_id
+        WHERE m.student_id = ?
+      `;
+
+      connection.query(joinedGroupsQuery, [studentId], (err, groupResults) => {
+        if (err) throw err;
+
+        // Get all IGs (for dropdowns or filtering)
+        connection.query("SELECT * FROM interest_groups", (err, allIGResults) => {
+          if (err) throw err;
+
+          // Get recent announcements
+          connection.query('SELECT * FROM announcements ORDER BY created_at DESC LIMIT 5', (err, announcementResults) => {
+            if (err) throw err;
+
+            // Get all student achievements
+            connection.query("SELECT * FROM student_achievements WHERE student_id = ?", [studentId], (err, achievementResults) => {
+              if (err) throw err;
+
+              res.render('Student/studentDashboard', {
+                student: student,
+                events: eventResults,
+                interestGroups: groupResults,
+                announcements: announcementResults,
+                achievements: achievementResults,
+                allIGs: allIGResults,
+                activePage: "dashboard"
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+app.post('/student/request-join', authUser, (req, res) => {
+  const { ig_id } = req.body;
+  const studentId = req.session.user.id;
+
+  const query = `INSERT INTO ig_join_requests (student_id, ig_id) VALUES (?, ?)`;
+  connection.query(query, [studentId, ig_id], (err) => {
+    if (err) {
+      req.flash('error', 'Failed to send request');
+      return res.redirect('/students/dashboard');
+    }
+    req.flash('success', 'Join request sent successfully!');
+    res.redirect('/students/dashboard');
+  });
+});
+
+
+app.get('/admin/join-requests', (req, res) => {
+  const query = `
+   SELECT r.*, s.name AS student_name, ig.name AS ig_name
+FROM ig_join_requests r
+JOIN students s ON r.student_id = s.id
+JOIN interest_groups ig ON r.ig_id = ig.id
+
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) throw err;
+    res.render('Admin/JoinRequestIG(Weijie)/manageJoinRequests', { requests: results });
+  });
+});
+
+
+app.post('/admin/join-requests/:id/approve', (req, res) => {
+  const requestId = req.params.id;
+
+  // First, approve the request
+  const updateQuery = `UPDATE ig_join_requests SET status = 'approved' WHERE id = ?`;
+  connection.query(updateQuery, [requestId], (err) => {
+    if (err) throw err;
+
+    // Then insert into members table
+    const insertMemberQuery = `
+      INSERT INTO members (student_id, ig_id)
+      SELECT student_id, ig_id FROM ig_join_requests WHERE id = ?
+    `;
+    connection.query(insertMemberQuery, [requestId], (err2) => {
+      if (err2) throw err2;
+      res.redirect('/admin/join-requests');
+    });
+  });
+});
+
+app.post('/admin/join-requests/:id/reject', (req, res) => {
+  const requestId = req.params.id;
+  const query = `UPDATE ig_join_requests SET status = 'rejected' WHERE id = ?`;
+  connection.query(query, [requestId], (err) => {
+    if (err) throw err;
+    res.redirect('/admin/join-requests');
+  });
+});
+
+
+
+
+
+app.get('/student/profile', (req, res) => {
+  const userId = req.session.user.id;
+
+  connection.query('SELECT * FROM users WHERE id = ? AND roles = "student"', [userId], (err, results) => {
+    if (err || results.length === 0) {
+      req.flash('error', 'Student not found.');
+      return res.redirect('/students/dashboard');
+    }
+    res.render('Student/profile(weijie)/profile', {
+      user: results[0],
+      success: req.flash('success'),
+      error: req.flash('error')
+    });
+  });
+});
+
+
+
+
+
+
+
+
+app.post('/student/profile/update', upload.single('profileImage'), (req, res) => {
+  const userId = req.session.user.id;
+  const { fullname, username } = req.body;
+  const profileImage = req.file ? req.file.filename : null;
+
+  let sql = "UPDATE users SET fullname = ?, username = ?" + (profileImage ? ", profile_image = ?" : "") + " WHERE id = ? AND roles = 'student'";
+  let params = profileImage ? [fullname, username, profileImage, userId] : [fullname, username, userId];
+
+  connection.query(sql, params, (err) => {
+    if (err) {
+      req.flash('error', 'Update failed.');
+      return res.redirect('/student/profile');
+    }
+    req.flash('success', 'Profile updated successfully!');
+    res.redirect('/student/profile');
+  });
+});
+
+app.get('/student/profile/delete', (req, res) => {
+  const userId = req.session.user.id;
+
+  connection.query("DELETE FROM users WHERE id = ? AND roles = 'student'", [userId], (err) => {
+    if (err) {
+      req.flash('error', 'Failed to delete profile.');
+      return res.redirect('/student/profile');
+    }
+    req.session.destroy(() => {
+      res.redirect('/login');
+    });
+  });
+});
 
 
 

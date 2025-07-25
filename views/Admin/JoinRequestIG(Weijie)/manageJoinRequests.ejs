@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage IG Join Requests | IGConnect Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .header {
+      background: linear-gradient(to right, #2c3e50, #3498db);
+      color: white;
+      padding: 60px 20px;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+    }
+    .card-style {
+      border-radius: 12px;
+      padding: 25px;
+      background-color: #ffffff;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    .table th, .table td {
+      vertical-align: middle;
+    }
+    .filter-box {
+      max-width: 300px;
+      margin-bottom: 20px;
+    }
+    .no-data {
+      text-align: center;
+      padding: 50px 0;
+      font-size: 1.2rem;
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+<%- include("../../partials/Admin/Navbar") %>
+
+  <div class="header">
+    <h1>Manage IG Join Requests</h1>
+    <p class="lead">Review, approve, or reject interest group requests submitted by students.</p>
+  </div>
+
+  <div class="container mt-5">
+    <% if (requests.length > 0) { %>
+
+      <div class="d-flex gap-3 flex-wrap mb-3">
+  <div class="filter-box">
+    <input type="text" class="form-control" id="searchInput" placeholder="🔍 Search by student or IG name..." />
+  </div>
+  <div class="filter-box">
+    <select class="form-select" id="statusFilter">
+      <option value="">🔽 Filter by Status</option>
+      <option value="pending">Pending</option>
+      <option value="approved">Approved</option>
+      <option value="rejected">Rejected</option>
+    </select>
+  </div>
+</div>
+
+
+      <div class="card-style">
+        <table class="table table-bordered table-hover" id="requestTable">
+          <thead class="table-dark">
+            <tr>
+              <th>#</th>
+              <th>Student Name</th>
+              <th>Interest Group</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% requests.forEach((r, index) => { %>
+              <tr>
+                <td><%= index + 1 %></td>
+<td><%= r.student_name %></td>
+                <td><%= r.ig_name %></td>
+                <td>
+                  <span class="badge bg-<%= r.status === 'approved' ? 'success' : r.status === 'rejected' ? 'danger' : 'warning text-dark' %> text-uppercase">
+                    <%= r.status %>
+                  </span>
+                </td>
+                <td><%= new Date(r.request_date).toLocaleString() %></td>
+                <td>
+                  <% if (r.status === 'pending') { %>
+                    <form action="/admin/join-requests/<%= r.id %>/approve" method="POST" style="display:inline-block;">
+                      <button class="btn btn-success btn-sm">Approve</button>
+                    </form>
+                    <form action="/admin/join-requests/<%= r.id %>/reject" method="POST" style="display:inline-block;">
+                      <button class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                  <% } else { %>
+                    <span class="text-muted">—</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <div id="noResultsMsg" class="no-data" style="display: none;">
+  <i class="fas fa-search-minus fa-2x mb-3 text-muted"></i><br>
+  No matching join requests found.
+</div>
+
+      </div>
+
+    <% } else { %>
+        
+     <div class="no-data">
+  <i class="fas fa-user-friends fa-2x mb-3 text-muted"></i><br>
+  No CCA join requests at the moment.<br>
+  Sit back and relax — your dashboard is up to date.
+</div>
+
+    <% } %>
+  </div>
+<script>
+  const searchInput = document.getElementById('searchInput');
+  const statusFilter = document.getElementById('statusFilter');
+  const noResultsMsg = document.getElementById('noResultsMsg');
+  const rows = document.querySelectorAll('#requestTable tbody tr');
+
+  function filterTable() {
+    const search = searchInput?.value.toLowerCase() || '';
+    const status = statusFilter?.value.toLowerCase() || '';
+    let found = false;
+
+    rows.forEach(row => {
+      const student = row.children[1].textContent.toLowerCase();
+      const ig = row.children[2].textContent.toLowerCase();
+      const rowStatus = row.children[3].textContent.toLowerCase();
+
+      const matchesSearch = student.includes(search) || ig.includes(search);
+      const matchesStatus = status === '' || rowStatus.includes(status);
+
+      const showRow = matchesSearch && matchesStatus;
+      row.style.display = showRow ? '' : 'none';
+      if (showRow) found = true;
+    });
+
+    noResultsMsg.style.display = found ? 'none' : 'block';
+  }
+
+  searchInput?.addEventListener('keyup', filterTable);
+  statusFilter?.addEventListener('change', filterTable);
+</script>
+
+
+<%- include("../../partials/Admin/footer") %>
+
+</body>
+</html>

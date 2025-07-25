@@ -1,22 +1,47 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="/student/home">IGConnect</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarStudent" aria-controls="navbarStudent" aria-expanded="false" aria-label="Toggle navigation">
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3 sticky-top">
+  <div class="container">
+    <!-- Logo -->
+    <a class="navbar-brand fw-bold d-flex align-items-center" href="/admin/dashboard">
+      <img src="/images/igconnect_logo.png" alt="IGConnect Logo" width="40" class="me-2">
+      <span style="color: #002244;">IGConnect Admin</span>
+    </a>
+
+    <!-- Toggler for mobile -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin" aria-controls="navbarAdmin" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse" id="navbarStudent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link" href="/student/profile">Profile</a></li>
-        <li class="nav-item"><a class="nav-link" href="/student/igs">Interest Groups</a></li>
-        <li class="nav-item"><a class="nav-link" href="/student/events">My Events</a></li>
-        <li class="nav-item"><a class="nav-link" href="/student/attendance">My Attendance</a></li>
-        <li class="nav-item"><a class="nav-link" href="/student/announcements">Announcements</a></li>
-        <li class="nav-item"><a class="nav-link" href="/student/gallery">Gallery</a></li>
+    <!-- Nav links -->
+    <div class="collapse navbar-collapse" id="navbarAdmin">
+      <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link <%= activePage === 'dashboard' ? 'active fw-bold' : '' %>" href="/admin/dashboard">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= activePage === 'manage_igs' ? 'active fw-bold' : '' %>" href="/admin/manage-igs">Manage IGs</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= activePage === 'events' ? 'active fw-bold' : '' %>" href="/admin/manage-events">Events</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= activePage === 'announcements' ? 'active fw-bold' : '' %>" href="/admin/manage-announcements">Announcements</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= activePage === 'gallery' ? 'active fw-bold' : '' %>" href="/admin/manage-gallery">Gallery</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= activePage === 'join_requests' ? 'active fw-bold' : '' %>" href="/admin/manage-join-requests">Join Requests</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= activePage === 'students' ? 'active fw-bold' : '' %>" href="/admin/manage-students">Students</a>
+        </li>
       </ul>
-      <ul class="navbar-nav">
-        <li class="nav-item"><a class="nav-link text-warning" href="/logout">Logout</a></li>
-      </ul>
+
+      <!-- Profile / Sign Out -->
+      <div class="d-flex align-items-center">
+        <span class="me-3 fw-semibold text-dark">👤 <%= admin.username %></span>
+        <a href="/logout" class="btn btn-outline-danger">Sign Out</a>
+      </div>
     </div>
   </div>
 </nav>

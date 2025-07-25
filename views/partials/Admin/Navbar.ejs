@@ -1,18 +1,22 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm sticky-top">
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
   <div class="container">
-    <a class="navbar-brand fw-bold" href="/admin" style="color: #f39c12;">
-      <img src="/Images/IGConnect-logo-transparent.png" alt="IGConnect Logo" width="90" height="90" class="d-inline-block align-text-top">
+    <!-- Brand -->
+    <a class="navbar-brand fw-bold d-flex align-items-center" href="/admin">
+      <img src="/Images/IGConnect-logo-transparent.png" alt="IGConnect Logo" width="100" height="100" class="me-2">
     </a>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <!-- Toggler -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin" aria-controls="navbarAdmin" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto align-items-center">
+    <!-- Navbar Items -->
+    <div class="collapse navbar-collapse" id="navbarAdmin">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+
         <!-- Manage IGs Dropdown -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <a class="nav-link dropdown-toggle text-dark" href="#" id="manageIGsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Manage IGs
           </a>
           <ul class="dropdown-menu">
@@ -21,6 +25,9 @@
           </ul>
         </li>
 
+        <li class="nav-item">
+          <a class="nav-link text-dark" href="/admin/join-requests">Join Requests</a>
+        </li>
         <li class="nav-item">
           <a class="nav-link text-dark" href="/admin/events">Events</a>
         </li>
@@ -31,13 +38,15 @@
           <a class="nav-link text-dark" href="/admin/announcements">Announcements</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-dark" href="/admin/meeting_schedule">Meeting schedule</a>
+          <a class="nav-link text-dark" href="/admin/meeting_schedule">Meeting Schedule</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-dark" href="/admin/achievements">Achievement</a>
+          <a class="nav-link text-dark" href="/admin/achievements">Achievements</a>
         </li>
+
+        <!-- Admin Profile Dropdown -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
+          <a class="nav-link dropdown-toggle text-dark" href="#" id="adminProfileDropdown" role="button" data-bs-toggle="dropdown">
             <i class="fas fa-user-circle me-1"></i> Admin
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
