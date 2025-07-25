@@ -656,7 +656,6 @@ app.post('/reset-password', async (req, res) => {
       return res.redirect('/login'); // Redirect to login after reset
     });
   } catch (err) {
-    console.error(err);
     req.flash('errorMsg', 'Error during password reset.');
     return res.redirect('/reset-password');
   }
@@ -704,7 +703,6 @@ app.post('/admin/events/add',authUser , authAdmin, (req, res) => {
   
   connection.query(checkCategoryQuery, [ig_id], (err, result) => {
     if (err) {
-      console.error(err);
       req.flash('error', 'Error validating category ID');
       return res.redirect('/admin/events/add');
     }
@@ -722,7 +720,6 @@ app.post('/admin/events/add',authUser , authAdmin, (req, res) => {
 
     connection.query(query, [ig_id,event_name, event_date, location, event_description], (err, results) => {
       if (err) {
-        console.error(err);
         req.flash('error', 'Failed to add event. Please try again.');
         return res.redirect('/admin/events/add');
       }
@@ -878,7 +875,6 @@ app.post('/admin/profile/update',authUser , authAdmin,  upload.single('profileIm
     await connection.execute(updateQuery, params);
     req.flash('success', 'Profile updated successfully');
   } catch (err) {
-    console.error('Update error:', err);
     req.flash('error', 'Failed to update profile');
   }
 
@@ -917,9 +913,6 @@ app.post('/admin/profile/password',authUser , authAdmin ,async (req, res) => {
       [hashed, userId]
     );
 
-    // Log result for debugging
-    console.log(result);
-
     // Check if result contains expected structure
     if (result && result[0] && result[0].affectedRows === 0) {
       req.flash('error', 'No admin found to update password.');
@@ -927,7 +920,6 @@ app.post('/admin/profile/password',authUser , authAdmin ,async (req, res) => {
       req.flash('success', 'Password updated successfully.');
     }
   } catch (err) {
-    console.error('Password update error:', err);
     req.flash('error', 'Failed to update password.');
   }
 
@@ -956,7 +948,6 @@ app.post('/admin/profile/delete',authUser , authAdmin,async (req, res) => {
     // Destroy session and redirect
     req.session.destroy(err => {
       if (err) {
-        console.error('Error destroying session:', err);
         return res.redirect('/admin/profile');
       }
       res.clearCookie('connect.sid');
@@ -964,7 +955,6 @@ app.post('/admin/profile/delete',authUser , authAdmin,async (req, res) => {
     });
 
   } catch (err) {
-    console.error(err);
     req.flash('error', 'Failed to delete account.');
     res.redirect('/admin/profile');
   }
@@ -1251,7 +1241,6 @@ app.post('/admin/manage-categories/delete/:id',authUser , authAdmin, (req, res) 
     // Safe to delete
     connection.query('DELETE FROM ig_categories WHERE id = ?', [id], err => {
       if (err) {
-        console.error("Delete error:", err);
         req.flash('error', 'Failed to delete category');
       } else {
         req.flash('success', 'Category deleted successfully');
@@ -1279,7 +1268,6 @@ app.get("/admin",authUser , authAdmin,  async (req, res) => {
       const used = total - disk.free;
       storageUsage = `${((used / total) * 100).toFixed(1)}% full`;
     } catch (err) {
-      console.error('Disk usage error:', err);
       storageUsage = 'Error retrieving';
     }
 
@@ -1418,7 +1406,6 @@ const recentJoinRequests = joinRequests.map(r => ({
     });
 
   } catch (err) {
-    console.error(err);
     res.status(500).send('Server Error');
   }
 });
@@ -1434,7 +1421,6 @@ app.get('/admin/achievements',authUser , authAdmin, (req, res) => {
 
   connection.query(sql, (err, results) => {
     if (err) {
-      console.error('MySQL Error:', err);
       return res.status(500).send('Database error');
     }
     res.render('Admin/Achievements(Kal)/manageAchievements', { achievements: results });
