@@ -18,8 +18,6 @@ const connection = mysql.createConnection({
   port:3307,
   password: 'b69eb482e0b1ce82afc48f207c3ef3b08594f27f',
   database: 'c237ca2group5_slavegulf',
-  connectTimeout:10000,
-
 });
 connection.connect(err => {
   if (err) return console.error('MySQL error:', err);
