@@ -1895,7 +1895,9 @@ app.get('/students/dashboard', authUser, (req, res) => {
                 announcements: announcementResults,
                 achievements: achievementResults,
                 allIGs: allIGResults,
-                activePage: "dashboard"
+                activePage: "dashboard",
+                success: req.flash('success'),
+    error: req.flash('error')
               });
             });
           });
@@ -2395,6 +2397,32 @@ app.post('/students/schedule/:id/rsvp',authUser , (req, res) => {
     res.redirect('/students/schedule');
   });
 });
+
+app.post('/request-ig', (req, res) => {
+  const { ig_id, reason } = req.body;
+  const studentId = req.session.user.id; // assuming session has user info
+
+  if (!ig_id || !reason) {
+    req.flash('error', 'Please fill in all fields.');
+    return res.redirect('/students/dashboard');
+  }
+
+  const sql = `
+    INSERT INTO ig_join_requests (student_id, ig_id, reason, status, request_date)
+    VALUES (?, ?, ?, 'Pending', NOW())
+  `;
+  connection.query(sql, [studentId, ig_id, reason], (err, result) => {
+    if (err) {
+      console.error('❌ Request IG Error:', err);
+      req.flash('error', 'Something went wrong. Please try again.');
+    } else {
+      req.flash('success', 'Your request has been submitted!');
+    }
+    res.redirect('/students/dashboard');
+  });
+});
+
+
 
 // ---------- Start Server ----------
 app.listen(3000, () => {

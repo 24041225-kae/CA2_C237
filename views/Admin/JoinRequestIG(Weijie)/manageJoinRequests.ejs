@@ -77,36 +77,38 @@
               <th>Interest Group</th>
               <th>Status</th>
               <th>Date</th>
+              <th>Reason</th>
               <th>Action</th>
             </tr>
           </thead>
-          <tbody>
-            <% requests.forEach((r, index) => { %>
-              <tr>
-                <td><%= index + 1 %></td>
-<td><%= r.student_name %></td>
-                <td><%= r.ig_name %></td>
-                <td>
-                  <span class="badge bg-<%= r.status === 'approved' ? 'success' : r.status === 'rejected' ? 'danger' : 'warning text-dark' %> text-uppercase">
-                    <%= r.status %>
-                  </span>
-                </td>
-                <td><%= new Date(r.request_date).toLocaleString() %></td>
-                <td>
-                  <% if (r.status === 'pending') { %>
-                    <form action="/admin/join-requests/<%= r.id %>/approve" method="POST" style="display:inline-block;">
-                      <button class="btn btn-success btn-sm">Approve</button>
-                    </form>
-                    <form action="/admin/join-requests/<%= r.id %>/reject" method="POST" style="display:inline-block;">
-                      <button class="btn btn-danger btn-sm">Reject</button>
-                    </form>
-                  <% } else { %>
-                    <span class="text-muted">—</span>
-                  <% } %>
-                </td>
-              </tr>
-            <% }) %>
-          </tbody>
+         <tbody>
+  <% requests.forEach((r, index) => { %>
+    <tr>
+      <td><%= index + 1 %></td>
+      <td><%= r.student_name %></td>
+      <td><%= r.ig_name %></td>
+      <td>
+        <span class="badge bg-<%= r.status === 'approved' ? 'success' : r.status === 'rejected' ? 'danger' : 'warning text-dark' %> text-uppercase">
+          <%= r.status %>
+        </span>
+      </td>
+      <td><%= new Date(r.request_date).toLocaleString() %></td>
+      <td><%= r.reason || '—' %></td>
+      <td>
+        <% if (r.status === 'pending') { %>
+          <form action="/admin/join-requests/<%= r.id %>/approve" method="POST" style="display:inline-block;">
+            <button class="btn btn-success btn-sm">Approve</button>
+          </form>
+          <form action="/admin/join-requests/<%= r.id %>/reject" method="POST" style="display:inline-block;">
+            <button class="btn btn-danger btn-sm">Reject</button>
+          </form>
+        <% } else { %>
+          <span class="text-muted">—</span>
+        <% } %>
+      </td>
+    </tr>
+  <% }) %>
+</tbody>
         </table>
         <div id="noResultsMsg" class="no-data" style="display: none;">
   <i class="fas fa-search-minus fa-2x mb-3 text-muted"></i><br>
