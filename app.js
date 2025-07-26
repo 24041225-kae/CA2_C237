@@ -502,11 +502,9 @@ app.get('/login', (req, res) => {
     errorMsg: req.flash('errorMsg')
   });
 });
-
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
-  // Validate input
   if (!email || !password) {
     req.flash('errorMsg', 'Please fill in all fields.');
     return res.redirect('/login');
@@ -517,36 +515,34 @@ app.post('/login', (req, res) => {
     return res.redirect('/login');
   }
 
-  // Select the user based on the email
   const sql = "SELECT * FROM users WHERE email = ?";
   connection.query(sql, [email], (err, results) => {
     if (err) {
-      req.flash('errorMsg', 'Database error');
+      req.flash('errorMsg', 'Database error.');
       return res.redirect('/login');
     }
 
-    // Check if the user exists
     if (results.length > 0) {
       const user = results[0];
 
-      // Compare the entered password with the stored password hash
       bcrypt.compare(password, user.password, (err, isMatch) => {
         if (err) {
-          req.flash('errorMsg', 'Error while comparing passwords');
+          req.flash('errorMsg', 'Error while checking password.');
           return res.redirect('/login');
         }
 
         if (isMatch) {
           req.session.user = user;
-          req.flash('successMsg', 'Login successful!');
+          const displayName = user.fullname || user.username || 'Student';
+          req.flash('successMsg', `Welcome back, ${displayName}!`);
           return res.redirect(user.roles === 'admin' ? '/admin' : '/students/dashboard');
         } else {
-          req.flash('errorMsg', 'Invalid email or password');
+          req.flash('errorMsg', 'Invalid email or password.');
           return res.redirect('/login');
         }
       });
     } else {
-      req.flash('errorMsg', 'Invalid email or password');
+      req.flash('errorMsg', 'Invalid email or password.');
       return res.redirect('/login');
     }
   });
@@ -1860,8 +1856,9 @@ app.get('/students/dashboard', authUser, (req, res) => {
                 achievements: achievementResults,
                 allIGs: allIGResults,
                 activePage: "dashboard",
-                success: req.flash('success'),
-    error: req.flash('error')
+             
+    successMsg: req.flash('successMsg'),
+      errorMsg: req.flash('errorMsg')
               });
             });
           });
@@ -2313,25 +2310,32 @@ app.get('/students/schedule', authUser, (req, res) => {
   connection.query(sql, [studentId], (err, results) => {
     if (err) {
       console.error('MySQL Error:', err);
-      return res.send('Database error');
+      req.flash('errorMsg', '❌ Unable to load schedule.');
+      return res.redirect('/students/dashboard'); // or handle appropriately
     }
 
-    res.render('Student/Schedule(Weijie)/Schedule', { schedule: results });
+    res.render('Student/Schedule(Weijie)/Schedule', {
+      schedule: results,
+      successMsg: req.flash('successMsg'),
+      errorMsg: req.flash('errorMsg')
+    });
   });
 });
 
 
 
 
-app.post('/students/schedule/:id/cancel-rsvp' , authUser , (req, res) => {
+app.post('/students/schedule/:id/cancel-rsvp', authUser, (req, res) => {
   const scheduleId = req.params.id;
   const studentId = req.session.user.id;
 
-  const sql = `DELETE FROM schedule_rsvps WHERE schedule_id = ? AND student_id = ?`;
+  const sql = `DELETE FROM ig_schedule_rsvps WHERE schedule_id = ? AND student_id = ?`;
 
   connection.query(sql, [scheduleId, studentId], (err, result) => {
     if (err) {
-      req.flash('error', 'Error canceling RSVP');
+      req.flash('errorMsg', '❌ Error canceling RSVP');
+    } else {
+      req.flash('successMsg', '✅ RSVP successfully cancelled');
     }
     res.redirect('/students/schedule');
   });
@@ -2339,22 +2343,26 @@ app.post('/students/schedule/:id/cancel-rsvp' , authUser , (req, res) => {
 
 
 
-app.post('/students/schedule/:id/rsvp',authUser , (req, res) => {
+app.post('/students/schedule/:id/rsvp', authUser, (req, res) => {
   const scheduleId = req.params.id;
   const studentId = req.session.user.id;
-  const status = req.body.status;
+  const status = req.body.status || 'attending';
 
-  const sql = `INSERT INTO schedule_rsvps (schedule_id, student_id, status)
+  const sql = `INSERT INTO ig_schedule_rsvps (schedule_id, student_id, status)
                VALUES (?, ?, ?)
                ON DUPLICATE KEY UPDATE status = ?`;
 
   connection.query(sql, [scheduleId, studentId, status, status], (err, result) => {
     if (err) {
-      req.flash('error', 'Error saving RSVP');
+      console.error('RSVP Error:', err);
+      req.flash('errorMsg', '❌ Failed to RSVP');
+    } else {
+      req.flash('successMsg', '✅ RSVP submitted');
     }
     res.redirect('/students/schedule');
   });
 });
+
 
 app.post('/request-ig', authUser , (req, res) => {
   const { ig_id, reason } = req.body;
