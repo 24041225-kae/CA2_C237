@@ -15,11 +15,11 @@ const checkDiskSpace = require('check-disk-space').default;
 const connection = mysql.createConnection({
   connectionLimit:1000,
   waitForConnections:true,
-  host:"okdw0q.h.filess.io",
-  database:"c237ca2group5_howeverhow",
-  user:"c237ca2group5_howeverhow",
-  port:3307,
-  password:"9608bfa2fe8964e3307ca391d7a9dcb5c22b972a"
+  host:"sql12.freesqldatabase.com",
+  database:"sql12792026",
+  user:"sql12792026",
+  port:3306,
+  password:"zQyklmiwjk"
 })
 connection.query(err => {
   if (err) return console.error('MySQL error:', err);
