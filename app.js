@@ -6,49 +6,58 @@ const flash = require("connect-flash");
 const path = require('path');
 const validator = require('validator');
 const bcrypt = require('bcrypt');
+const fs = require('fs');
 const app = express();
-const moment = require('moment'); 
-const { type } = require('os');
+const moment = require('moment');
 const checkDiskSpace = require('check-disk-space').default;
 
-
+// MySQL Setup
 const connection = mysql.createConnection({
   host: '1-tf2k.h.filess.io',
   user: 'c237ca2group5_inchfewbe',
-  port:3307,
+  port: 3307,
   password: '61539830559d1b64a138a30af3c23dc6b4248cef',
   database: 'c237ca2group5_inchfewbe',
 });
+
 connection.connect(err => {
-  if (err) return console.error('MySQL error:', err);
-  console.log('MySQL connected');
+  if (err) return console.error('❌ MySQL error:', err);
+  console.log('✅ MySQL connected');
 });
 
-// Multer Setup (for image uploads)
+// Ensure upload folder exists
+const uploadPath = path.join(__dirname, 'public/uploads');
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath, { recursive: true });
+  console.log('✅ Upload folder created');
+}
+
+// Multer Setup
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'public/uploads/'),
+  destination: (req, file, cb) => cb(null, uploadPath),
   filename: (req, file, cb) => {
     const unique = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, 'proof-' + unique + path.extname(file.originalname));
   }
 });
+const upload = multer({ storage });
 
-const upload = multer({ storage , dest:'public/uploads/'});
+// App Settings
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
+// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(uploadPath)); // For images
 
-app.use(express.urlencoded({ extended: true }));
-// Middleware Setup
+// Session + Flash Middleware
 app.use(session({
   secret: 'Secret',
   resave: false,
   saveUninitialized: true,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
+  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 } // 1 week
 }));
-// Flash middleware must come after session
 app.use(flash());
 
 // MySQL Setup
