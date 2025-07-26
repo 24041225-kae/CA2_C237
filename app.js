@@ -12,15 +12,18 @@ const moment = require('moment');
 const checkDiskSpace = require('check-disk-space').default;
 
 // MySQL Setup
-const connection = mysql.createConnection({
-  host: '1-tf2k.h.filess.io',
-  user: 'c237ca2group5_inchfewbe',
-  port: 3307,
-  password: '61539830559d1b64a138a30af3c23dc6b4248cef',
-  database: 'c237ca2group5_inchfewbe',
-});
+const pool = mysql.createPool({
+  connectionLimit:1000,
+  queueLimit:0,
+  waitForConnections:true,
+  host:"okdw0q.h.filess.io",
+  database:"c237ca2group5_howeverhow",
+  user:"c237ca2group5_howeverhow",
+  port:3307,
+  password:"9608bfa2fe8964e3307ca391d7a9dcb5c22b972a"
+})
 
-connection.connect(err => {
+pool.query(err => {
   if (err) return console.error('MySQL error:', err);
   console.log('MySQL connected');
 });
@@ -88,7 +91,7 @@ app.get('/admin/announcements',authUser , authAdmin, (req, res) => {
   const params = [filterTargetAudience];  // Filter for only 'admin' audience
 
   // Execute the query
-  connection.query(query, params, (err, results) => {
+  pool.query(query, params, (err, results) => {
     if (err) {
       req.flash('error', 'Error fetching announcements');
       return res.redirect('/admin');
@@ -119,7 +122,7 @@ app.post('/admin/announcements/add', (req, res) => {
 
   const values = [title, message, target_audience]
 
-  connection.query(query, values, (err) => {
+  pool.query(query, values, (err) => {
     if (err) {
       console.error('SQL INSERT ERROR:', err);  // LOG this
       req.flash('error', 'Failed to add announcement.');
@@ -136,7 +139,7 @@ app.post('/admin/announcements/add', (req, res) => {
 app.get('/admin/announcements/edit/:id',authUser , authAdmin ,(req, res) => {
   const id = req.params.id;
 
-  connection.query('SELECT * FROM announcements WHERE id = ?', [id], (err, results) => {
+  pool.query('SELECT * FROM announcements WHERE id = ?', [id], (err, results) => {
     if (err || results.length === 0) {
       req.flash('error', 'Announcement not found.');
       return res.redirect('/admin/announcements');
@@ -150,7 +153,7 @@ app.post('/admin/announcements/edit/:id',authUser , authAdmin, (req, res) => {
   const id = req.params.id;
   const { title, message, target_audience } = req.body;
 
-  connection.query(
+  pool.query(
     'UPDATE announcements SET title = ?, message = ?, target_audience = ? WHERE id = ?',
     [title, message, target_audience, id],
     (err) => {
@@ -169,7 +172,7 @@ app.post('/admin/announcements/edit/:id',authUser , authAdmin, (req, res) => {
 app.post('/admin/announcements/delete/:id',authUser , authAdmin, (req, res) => {
   const id = req.params.id;
 
-  connection.query('DELETE FROM announcements WHERE id = ?', [id], (err) => {
+  pool.query('DELETE FROM announcements WHERE id = ?', [id], (err) => {
     if (err) {
       req.flash('error', 'Failed to delete announcement.');
     } else {
@@ -187,7 +190,7 @@ app.get('/admin/events',authUser , authAdmin, (req, res) => {
     LEFT JOIN ig_categories AS ig ON ev.ig_id = ig.id
   `;
 
-  connection.query(query, (err, eventList) => {
+pool.query(query, (err, eventList) => {
     console.log(eventList)
     if (err) {
       req.flash('error', 'Error loading events');
@@ -197,6 +200,7 @@ app.get('/admin/events',authUser , authAdmin, (req, res) => {
         errorMsg: req.flash('error')
       });
     }
+  
 
     res.render('Admin/Events(Weijie)/ManageEvents', {
       eventList: eventList,
@@ -216,7 +220,7 @@ app.get('/admin/gallery',authUser , authAdmin,(req, res) => {
                  FROM galleries AS g 
                  LEFT JOIN interest_groups AS ig ON g.ig_id = ig.id`;
 
-  connection.query(query, (err, galleryList) => {
+  pool.query(query, (err, galleryList) => {
     if (err) {
       req.flash('error', 'Error loading gallery items');
       return res.render('Admin/Gallary(Kal)/ManageGallery', {
@@ -248,7 +252,7 @@ app.post('/admin/gallery/add',authUser , authAdmin, upload.single('media_url'), 
   // Insert query to add gallery item into the database
   const query = 'INSERT INTO galleries (media_url, caption, upload_date, student_id, title, ig_id) VALUES (?, ?, ?, ?, ?, ?)';
 
-  connection.query(query, [media_url, caption, upload_date, student_id, title, ig_id], (err) => {
+  pool.query(query, [media_url, caption, upload_date, student_id, title, ig_id], (err) => {
     if (err) {
       console.error('Error adding new gallery item:', err);
       req.flash('error', 'Error adding new gallery item');
@@ -267,7 +271,7 @@ app.get('/admin/gallery/add',authUser , authAdmin, (req, res) => {
   // Fetch Interest Groups (IGs) to populate the dropdown in the form
   const query = 'SELECT id, name FROM interest_groups';
 
-  connection.query(query, (err, igList) => {
+  pool.query(query, (err, igList) => {
     if (err) {
       req.flash('error', 'Error loading interest groups');
       return res.redirect('/admin/gallery');
@@ -293,7 +297,7 @@ app.get('/admin/gallery', authUser , authAdmin,(req, res) => {
                  FROM galleries AS g 
                  LEFT JOIN interest_groups AS ig ON g.ig_id = ig.id`;
 
-  connection.query(query, (err, galleryList) => {
+  pool.query(query, (err, galleryList) => {
     if (err) {
       req.flash('error', 'Error loading gallery items');
       return res.render('Admin/Gallery(Kal)/ManageGallery', {
@@ -317,7 +321,7 @@ app.get('/admin/gallery/edit/:id',authUser , authAdmin, (req, res) => {
   
   const query = 'SELECT * FROM galleries WHERE id = ?';
   
-  connection.query(query, [id], (err, result) => {
+  pool.query(query, [id], (err, result) => {
     if (err || result.length === 0) {
       req.flash('error', 'Gallery item not found');
       return res.redirect('/admin/gallery');
@@ -340,7 +344,7 @@ app.post('/admin/gallery/edit/:id',authUser , authAdmin, upload.single('media_im
   // Fetch the existing gallery details from the database to retain old media_url if no new image is uploaded
   const querySelect = 'SELECT * FROM galleries WHERE id = ?';
   
-  connection.query(querySelect, [galleryId], (err, results) => {
+  pool.query(querySelect, [galleryId], (err, results) => {
     if (err || results.length === 0) {
       console.error('Error fetching gallery:', err);
       req.flash('error', 'Gallery not found');
@@ -359,7 +363,7 @@ app.post('/admin/gallery/edit/:id',authUser , authAdmin, upload.single('media_im
       WHERE id = ?
     `;
 
-    connection.query(queryUpdate, [title, caption, newMediaUrl, ig_id, student_id, upload_date, galleryId], (err, result) => {
+    pool.query(queryUpdate, [title, caption, newMediaUrl, ig_id, student_id, upload_date, galleryId], (err, result) => {
       if (err) {
         console.error('Error updating gallery:', err);
         req.flash('error', 'Failed to update gallery');
@@ -386,7 +390,7 @@ app.post('/admin/gallery/delete/:id',authUser , authAdmin, (req, res) => {
   // First, delete the comments related to this gallery
   const deleteCommentsQuery = 'DELETE FROM gallery_comments WHERE gallery_id = ?';
   
-  connection.query(deleteCommentsQuery, [id], (err) => {
+  pool.query(deleteCommentsQuery, [id], (err) => {
     if (err) {
       console.error('Error deleting comments:', err);
       req.flash('error', 'Error deleting gallery comments');
@@ -396,7 +400,7 @@ app.post('/admin/gallery/delete/:id',authUser , authAdmin, (req, res) => {
     // Then, delete the gallery
     const deleteGalleryQuery = 'DELETE FROM galleries WHERE id = ?';
     
-    connection.query(deleteGalleryQuery, [id], (err) => {
+    pool.query(deleteGalleryQuery, [id], (err) => {
       if (err) {
         console.error('Error deleting gallery:', err);
         req.flash('error', 'Error deleting gallery item');
@@ -443,7 +447,7 @@ app.get('/admin/gallery/comments/:id',authUser , authAdmin,(req, res) => {
     ORDER BY c.created_at DESC
   `;
 
-  connection.query(query, [galleryId], (err, results) => {
+  pool.query(query, [galleryId], (err, results) => {
     if (err) {
       console.error('Error fetching comments:', err);
       return res.status(500).json({ error: 'Failed to load comments' });
@@ -474,7 +478,7 @@ app.post('/admin/gallery/:id/comment',authUser , authAdmin, (req, res) => {
     VALUES (?, ?, ?)
   `;
 
-  connection.query(query, [id, comment, user_id], (err, result) => {
+  pool.query(query, [id, comment, user_id], (err, result) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ error: "Error adding comment." });
@@ -514,7 +518,7 @@ app.post('/login', (req, res) => {
 
   // Select the user based on the email
   const sql = "SELECT * FROM users WHERE email = ?";
-  connection.query(sql, [email], (err, results) => {
+  pool.query(sql, [email], (err, results) => {
     if (err) {
       req.flash('errorMsg', 'Database error');
       return res.redirect('/login');
@@ -579,7 +583,7 @@ app.post('/register', (req, res) => {
 
     // Save the new user to the database with the hashed password
     const sql = "INSERT INTO users (username ,email,password,roles) VALUES (?, ?, ?, ?)";
-    connection.query(sql, [username,email , hashedPassword, roles], (err, results) => {
+    pool.query(sql, [username,email , hashedPassword, roles], (err, results) => {
       if (err) {
         req.flash('errorMsg', 'Database error during registration.');
         return res.redirect('/register');
@@ -619,7 +623,7 @@ app.post('/reset-password', async (req, res) => {
 
     // Update password in the database
     const sql = "UPDATE users SET password = ? WHERE email = ?";
-    connection.query(sql, [hashedPassword, email], (err, result) => {
+    pool.query(sql, [hashedPassword, email], (err, result) => {
       if (err) {
         req.flash('errorMsg', 'Error updating password.');
         return res.redirect('/reset-password');
@@ -647,7 +651,7 @@ app.get('/admin/events/add',authUser , authAdmin, (req, res) => {
   // Query to fetch all categories (interest groups)
   const query = `SELECT * FROM ig_categories`;
   
-  connection.query(query, (err, categories) => {
+  pool.query(query, (err, categories) => {
     if (err) {
       req.flash('error', 'Failed to load categories.');
       return res.redirect('/admin/events');
@@ -671,7 +675,7 @@ app.post('/admin/events/add',authUser , authAdmin, (req, res) => {
   // Validate if category_id exists in interest_groups
   const checkCategoryQuery = 'SELECT id FROM interest_groups WHERE id = ?';
   
-  connection.query(checkCategoryQuery, [ig_id], (err, result) => {
+  pool.query(checkCategoryQuery, [ig_id], (err, result) => {
     if (err) {
       req.flash('error', 'Error validating category ID');
       return res.redirect('/admin/events/add');
@@ -688,7 +692,7 @@ app.post('/admin/events/add',authUser , authAdmin, (req, res) => {
       VALUES (?, ?, ?, ?, ?)
     `;
 
-    connection.query(query, [ig_id,event_name, event_date, location, event_description], (err, results) => {
+    pool.query(query, [ig_id,event_name, event_date, location, event_description], (err, results) => {
       if (err) {
         req.flash('error', 'Failed to add event. Please try again.');
         return res.redirect('/admin/events/add');
@@ -718,13 +722,13 @@ app.get('/admin/events/edit/:id',authUser , authAdmin,(req, res) => {
   const igQuery = `SELECT id, name FROM interest_groups`;
 
   // Execute both queries concurrently
-  connection.query(eventQuery, [eventId], (err, eventResult) => {
+  pool.query(eventQuery, [eventId], (err, eventResult) => {
     if (err) {
       req.flash('error', 'Error fetching event details');
       return res.redirect('/admin/events');
     }
 
-    connection.query(igQuery, (err, igResult) => {
+    pool.query(igQuery, (err, igResult) => {
       if (err) {
         req.flash('error', 'Error fetching interest groups');
         return res.redirect('/admin/events');
@@ -752,7 +756,7 @@ app.post('/admin/events/edit/:id',authUser , authAdmin, (req, res) => {
     WHERE id = ?
   `;
 
-  connection.query(updateQuery, [name, date, location, ig_id, description, id], (err) => {
+  pool.query(updateQuery, [name, date, location, ig_id, description, id], (err) => {
     if (err) {
       req.flash('error', 'Error updating event');
       return res.redirect(`/admin/events/edit/${id}`);
@@ -771,7 +775,7 @@ app.post('/admin/events/delete/:id',authUser , authAdmin, (req, res) => {
   // Deleting the event by its ID
   const deleteQuery = 'DELETE FROM events WHERE id = ?';
 
-  connection.query(deleteQuery, [id], (err) => {
+  pool.query(deleteQuery, [id], (err) => {
     if (err) {
       req.flash('error', 'Failed to delete event');
     } else {
@@ -793,7 +797,7 @@ app.get('/admin/profile', authUser , authAdmin, (req, res) => {
     return res.redirect('/login');
   }
 
-  connection.query(
+  pool.query(
     'SELECT * FROM users WHERE id = ? AND roles = "admin"',
     [adminId],
     (err, results) => {
@@ -948,7 +952,7 @@ app.get('/admin/manage-igs',authUser , authAdmin, (req, res) => {
     GROUP BY ig.id, ig.name, ig.description, ig.advisor, ig_categories.name;
   `;
   
-  connection.query(query, (err, results) => {
+  pool.query(query, (err, results) => {
     if (err) {
       req.flash('error', 'Error loading interest groups');
       return res.render('Admin/IG(Siti)/ManageIG', { 
@@ -975,7 +979,7 @@ app.get('/admin/manage-igs',authUser , authAdmin, (req, res) => {
 // GET route to render the 'Add New Interest Group' form
 app.get('/admin/manage-igs/add',authUser , authAdmin, (req, res) => {
   // Query to fetch all categories for the category dropdown
-  connection.query('SELECT * FROM ig_categories', (err, categories) => {
+  pool.query('SELECT * FROM ig_categories', (err, categories) => {
     if (err) {
       req.flash('error', 'Error loading categories');
       return res.render('Admin/IG(Siti)/AddIG', { 
@@ -1002,7 +1006,7 @@ app.post('/admin/manage-igs/add',authUser , authAdmin, (req, res) => {
   // Insert the new interest group into the database
   const query = 'INSERT INTO interest_groups (name, category_id, description, advisor) VALUES (?, ?, ?, ?)';
   
-  connection.query(query, [name, category_id, description, advisor], (err) => {
+  pool.query(query, [name, category_id, description, advisor], (err) => {
     if (err) {
       req.flash('error', 'Failed to add Interest Group');
       return res.redirect('/admin/manage-igs'); // Redirect back to the Manage IGs page
@@ -1018,7 +1022,7 @@ app.post('/admin/manage-igs/add',authUser , authAdmin, (req, res) => {
 app.post('/admin/manage-igs/delete/:id',authUser , authAdmin, (req, res) => {
   const { id } = req.params;
   
-  connection.query('DELETE FROM interest_groups WHERE id = ?', [id], (err) => {
+  pool.query('DELETE FROM interest_groups WHERE id = ?', [id], (err) => {
     if (err) {
       req.flash('error', 'Failed to delete interest group');
     } else {
@@ -1045,7 +1049,7 @@ app.get('/admin/manage-igs/edit/:id',authUser , authAdmin,(req, res) => {
   const categoriesQuery = `SELECT id, name FROM ig_categories`;
 
   // Execute both queries
-  connection.query(igQuery, [igId], (err, igResults) => {
+  pool.query(igQuery, [igId], (err, igResults) => {
     if (err) {
       req.flash('error', 'Error loading interest group');
       return res.redirect('/admin/manage-igs');
@@ -1057,7 +1061,7 @@ app.get('/admin/manage-igs/edit/:id',authUser , authAdmin,(req, res) => {
     }
 
     // Execute the categories query
-    connection.query(categoriesQuery, (err, categories) => {
+    pool.query(categoriesQuery, (err, categories) => {
       if (err) {
         req.flash('error', 'Error loading categories');
         return res.redirect('/admin/manage-igs');
@@ -1087,7 +1091,7 @@ app.post('/admin/manage-igs/edit/:id',authUser , authAdmin, (req, res) => {
     WHERE id = ?
   `;
   
-  connection.query(query, [name, description, advisor, category_id, igId], (err) => {
+  pool.query(query, [name, description, advisor, category_id, igId], (err) => {
     if (err) {
       req.flash('error', 'Failed to update Interest Group');
       return res.redirect(`/admin/manage-igs/edit/${igId}`); // Redirect back to the edit page if error occurs
@@ -1103,7 +1107,7 @@ app.post('/admin/manage-igs/edit/:id',authUser , authAdmin, (req, res) => {
 // GET route for managing categories
 app.get('/admin/manage-categories',authUser , authAdmin,(req, res) => {
   // Query to fetch existing categories
-  connection.query('SELECT * FROM ig_categories', (err, categories) => {
+  pool.query('SELECT * FROM ig_categories', (err, categories) => {
     if (err) {
       req.flash('error', 'Error loading categories');
       return res.render('Admin/IG(Siti)/ManageCategories', { 
@@ -1125,7 +1129,7 @@ app.post('/admin/manage-categories/add',authUser , authAdmin, (req, res) => {
   const { category_name } = req.body;
 
   // Check if the category already exists
-  connection.query('SELECT * FROM ig_categories WHERE name = ?', [category_name], (err, results) => {
+  pool.query('SELECT * FROM ig_categories WHERE name = ?', [category_name], (err, results) => {
     if (err) {
       req.flash('error', 'Error checking category');
       return res.redirect('/admin/manage-categories');
@@ -1138,7 +1142,7 @@ app.post('/admin/manage-categories/add',authUser , authAdmin, (req, res) => {
     }
 
     // Insert new category into the database
-    connection.query('INSERT INTO ig_categories (name) VALUES (?)', [category_name], (err) => {
+    pool.query('INSERT INTO ig_categories (name) VALUES (?)', [category_name], (err) => {
       if (err) {
         req.flash('error', 'Failed to add category');
         return res.redirect('/admin/manage-categories');
@@ -1154,7 +1158,7 @@ app.post('/admin/manage-categories/edit/:id',authUser , authAdmin, (req, res) =>
   const { category_name } = req.body;
 
   // Query to update the category name
-  connection.query('UPDATE ig_categories SET name = ? WHERE id = ?', [category_name, categoryId], (err) => {
+  pool.query('UPDATE ig_categories SET name = ? WHERE id = ?', [category_name, categoryId], (err) => {
     if (err) {
       req.flash('error', 'Failed to update category');
       return res.redirect(`/admin/manage-categories/edit/${categoryId}`);
@@ -1169,7 +1173,7 @@ app.get('/admin/manage-categories/edit/:id',authUser , authAdmin, (req, res) => 
   const categoryId = req.params.id;
 
   // Query to fetch the category details by its ID
-  connection.query('SELECT * FROM ig_categories WHERE id = ?', [categoryId], (err, results) => {
+  pool.query('SELECT * FROM ig_categories WHERE id = ?', [categoryId], (err, results) => {
     if (err) {
       req.flash('error', 'Failed to fetch category details');
       return res.redirect('/admin/manage-categories');
@@ -1194,7 +1198,7 @@ app.post('/admin/manage-categories/delete/:id',authUser , authAdmin, (req, res) 
   const id = parseInt(req.params.id);
 
   // First check if any interest group uses this category
-  connection.query('SELECT COUNT(*) AS count FROM interest_groups WHERE category_id = ?', [id], (err, result) => {
+  pool.query('SELECT COUNT(*) AS count FROM interest_groups WHERE category_id = ?', [id], (err, result) => {
     if (err) {
       req.flash('error', 'Error checking category usage');
       return res.redirect('/admin/manage-categories');
@@ -1206,7 +1210,7 @@ app.post('/admin/manage-categories/delete/:id',authUser , authAdmin, (req, res) 
     }
 
     // Safe to delete
-    connection.query('DELETE FROM ig_categories WHERE id = ?', [id], err => {
+    pool.query('DELETE FROM ig_categories WHERE id = ?', [id], err => {
       if (err) {
         req.flash('error', 'Failed to delete category');
       } else {
@@ -1385,7 +1389,7 @@ app.get('/admin/achievements',authUser , authAdmin, (req, res) => {
     ORDER BY sa.date_awarded DESC
   `;
 
-  connection.query(sql, (err, results) => {
+  pool.query(sql, (err, results) => {
     if (err) {
       return res.status(500).send('Database error');
     }
@@ -1395,7 +1399,7 @@ app.get('/admin/achievements',authUser , authAdmin, (req, res) => {
 
 // Fetch student data for the select dropdown
 app.get('/admin/achievements/add',authUser , authAdmin,(req, res) => {
-  connection.query('SELECT id, name FROM students', (err, students) => {
+  pool.query('SELECT id, name FROM students', (err, students) => {
     if (err) return res.status(500).send('Database error.');
     res.render('Admin/Achievements(Kal)/addAchievement', { students });
   });
@@ -1412,7 +1416,7 @@ app.post('/admin/achievements/add',authUser , authAdmin, (req, res) => {
   `;
 
   // Execute the query with the provided data
-  connection.query(sql, [student_id, title, description, date_awarded], (err, result) => {
+  pool.query(sql, [student_id, title, description, date_awarded], (err, result) => {
     if (err) {
       console.error('Error inserting achievement:', err);
       return res.status(500).send('Database error.');
@@ -1437,7 +1441,7 @@ app.get('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
   `;
 
   // Fetch the achievement details from the database
-  connection.query(getAchievement, [achievementId], (err, achievementResults) => {
+  pool.query(getAchievement, [achievementId], (err, achievementResults) => {
     if (err || achievementResults.length === 0) {
       req.flash('error', 'Achievement not found.');
       return res.redirect('/admin/achievements');
@@ -1446,7 +1450,7 @@ app.get('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
     const achievement = achievementResults[0];
 
     // Fetch the students list
-    connection.query(getStudents, (err2, students) => {
+    pool.query(getStudents, (err2, students) => {
       if (err2) {
         req.flash('error', 'Failed to fetch student list.');
         return res.redirect('/admin/achievements');
@@ -1470,7 +1474,7 @@ app.post('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
     WHERE id = ?
   `;
 
-  connection.query(updateQuery, [student_id, title, description, date_awarded, achievementId], (err, result) => {
+  pool.query(updateQuery, [student_id, title, description, date_awarded, achievementId], (err, result) => {
     if (err) {
       console.error('Error updating achievement:', err);
       req.flash('error', 'Error updating achievement.');
@@ -1497,7 +1501,7 @@ app.get('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
   `;
 
   // Fetch the achievement details from the database
-  connection.query(getAchievement, [achievementId], (err, achievementResults) => {
+  pool.query(getAchievement, [achievementId], (err, achievementResults) => {
     if (err || achievementResults.length === 0) {
       req.flash('error', 'Achievement not found.');
       return res.redirect('/admin/achievements');
@@ -1506,7 +1510,7 @@ app.get('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
     const achievement = achievementResults[0];
 
     // Fetch the students list
-    connection.query(getStudents, (err2, students) => {
+    pool.query(getStudents, (err2, students) => {
       if (err2) {
         req.flash('error', 'Failed to fetch student list.');
         return res.redirect('/admin/achievements');
@@ -1525,7 +1529,7 @@ app.post('/admin/achievements/delete/:id',authUser , authAdmin, (req, res) => {
   // SQL query to delete the achievement from the database
   const deleteQuery = 'DELETE FROM student_achievements WHERE id = ?';
 
-  connection.query(deleteQuery, [achievementId], (err, result) => {
+  pool.query(deleteQuery, [achievementId], (err, result) => {
     if (err) {
       console.error('Error deleting achievement:', err);
       req.flash('error', 'Failed to delete achievement');
@@ -1550,7 +1554,7 @@ app.get('/admin/meeting_schedule',authUser , authAdmin, (req, res) => {
     params.push(`%${searchTerm}%`);
   }
 
-  connection.query(sql, params, (err, results) => {
+  pool.query(sql, params, (err, results) => {
     console.log(results)
     if (err) throw err;
     res.render('Admin/Meeting_schedule(Jiayi)/meeting_schedule', {
@@ -1565,14 +1569,14 @@ app.get('/admin/meeting_schedule',authUser , authAdmin, (req, res) => {
 // Route to render the form and fetch IG categories and IGs
 app.get('/admin/schedule/new',authUser , authAdmin, (req, res) => {
   // Fetch IG categories from the database
-  connection.query('SELECT id, name FROM ig_categories', (err, categories) => {
+  pool.query('SELECT id, name FROM ig_categories', (err, categories) => {
     if (err) {
       console.error(err);
       return res.status(500).send("Database query error");
     }
 
     // Fetch interest groups (IGs)
-    connection.query('SELECT id, name FROM interest_groups', (err, igs) => {
+    pool.query('SELECT id, name FROM interest_groups', (err, igs) => {
       if (err) {
         console.error(err);
         return res.status(500).send("Database query error");
@@ -1601,7 +1605,7 @@ app.post('/admin/schedule/new',authUser , authAdmin ,(req, res) => {
 
   // Query to check if the interest group exists by its name
   const sql = "SELECT name FROM interest_groups WHERE id = ?";
-  connection.query(sql, [name], (err, results) => {
+  pool.query(sql, [name], (err, results) => {
     if (err) {
       console.error(err);
       req.flash('error', 'An error occurred while checking the interest group.');
@@ -1616,7 +1620,7 @@ app.post('/admin/schedule/new',authUser , authAdmin ,(req, res) => {
       // Use the first result (assuming unique names)
 
       // Insert the new schedule with the retrieved interest group ID
-      connection.query(
+      pool.query(
         'INSERT INTO schedules (name, meeting_schedule, advisor, category_id) VALUES (?, ?, ?, ?)',
         [results[0].name, meeting_schedule, advisor, category_id], 
         (err) => {
@@ -1638,7 +1642,7 @@ app.post('/admin/schedule/new',authUser , authAdmin ,(req, res) => {
 app.get('/admin/edit_schedule/:id',authUser , authAdmin, (req, res) => {
   const id = req.params.id;
 
-  connection.query('SELECT * FROM schedules WHERE id = ?', [id], (err, results) => {
+  pool.query('SELECT * FROM schedules WHERE id = ?', [id], (err, results) => {
     if (err) throw err;
     if (results.length === 0) {
       req.flash('error', 'Schedule not found');
@@ -1667,7 +1671,7 @@ app.post('/admin/edit_schedule/:id',authUser , authAdmin, (req, res) => {
   // Convert datetime-local (like '2025-07-23T14:30') to MySQL datetime format
   meeting_schedule = meeting_schedule.replace('T', ' ') + ':00';
 
-  connection.query(
+  pool.query(
     'UPDATE schedules SET name = ?, meeting_schedule = ?, advisor = ? WHERE id = ?',
     [name, meeting_schedule, advisor, id],
     (err) => {
@@ -1682,7 +1686,7 @@ app.post('/admin/edit_schedule/:id',authUser , authAdmin, (req, res) => {
 app.post('/admin/delete_schedule/:id',authUser , authAdmin, (req, res) => {
   const id = req.params.id;
 
-  connection.query('DELETE FROM schedules WHERE id = ?', [id], (err, result) => {
+  pool.query('DELETE FROM schedules WHERE id = ?', [id], (err, result) => {
     if (err) {
       req.flash('error', 'Failed to delete schedule.');
       return res.redirect('/admin/meeting_schedule');
@@ -1734,7 +1738,7 @@ app.post('/admin/profile/update',authUser , authAdmin, upload.single('profile_im
   const sql = `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`;
   values.push(adminId);
 
-  connection.query(sql, values, (err, result) => {
+  pool.query(sql, values, (err, result) => {
     if (err) {
       console.error(err);
       req.flash('error', 'Something went wrong.');
@@ -1760,7 +1764,7 @@ app.get('/admin/schedules/:id/rsvps', (req, res) => {
     WHERE r.schedule_id = ?;
   `;
 
-  connection.query(sql, [scheduleId], (err, results) => {
+  pool.query(sql, [scheduleId], (err, results) => {
     if (err) {
       console.error('Failed to fetch schedule:', err);
       req.flash('error', 'Failed to load RSVP records');
@@ -1789,7 +1793,7 @@ app.get('/admin/schedules',authUser , authAdmin,(req, res) => {
     GROUP BY s.id
     ORDER BY s.meeting_schedule DESC`;
 
-  connection.query(sql, (err, results) => {
+  pool.query(sql, (err, results) => {
     if (err) {
       console.error('Schedule fetch error:', err);
       return res.status(500).send('Database error');
@@ -1809,7 +1813,7 @@ app.get('/students/dashboard', authUser, (req, res) => {
   const studentId = req.session.user.id;
 
   // Get student details
-  connection.query('SELECT * FROM users WHERE id = ? AND roles = "student"', [studentId], (err, studentResults) => {
+  pool.query('SELECT * FROM users WHERE id = ? AND roles = "student"', [studentId], (err, studentResults) => {
     if (err) throw err;
     const student = studentResults[0];
 
@@ -1822,7 +1826,7 @@ app.get('/students/dashboard', authUser, (req, res) => {
       WHERE m.student_id = ? AND e.date >= NOW()
     `;
 
-    connection.query(eventsQuery, [studentId], (err, eventResults) => {
+    pool.query(eventsQuery, [studentId], (err, eventResults) => {
       if (err) throw err;
 
       // Get the student's joined IGs
@@ -1832,19 +1836,19 @@ app.get('/students/dashboard', authUser, (req, res) => {
         WHERE m.student_id = ?
       `;
 
-      connection.query(joinedGroupsQuery, [studentId], (err, groupResults) => {
+      pool.query(joinedGroupsQuery, [studentId], (err, groupResults) => {
         if (err) throw err;
 
         // Get all IGs (for dropdowns or filtering)
-        connection.query("SELECT * FROM interest_groups", (err, allIGResults) => {
+        pool.query("SELECT * FROM interest_groups", (err, allIGResults) => {
           if (err) throw err;
 
           // Get recent announcements
-          connection.query('SELECT * FROM announcements ORDER BY created_at DESC LIMIT 5', (err, announcementResults) => {
+          pool.query('SELECT * FROM announcements ORDER BY created_at DESC LIMIT 5', (err, announcementResults) => {
             if (err) throw err;
 
             // Get all student achievements
-            connection.query("SELECT * FROM student_achievements WHERE student_id = ?", [studentId], (err, achievementResults) => {
+            pool.query("SELECT * FROM student_achievements WHERE student_id = ?", [studentId], (err, achievementResults) => {
               if (err) throw err;
 
               res.render('Student/studentDashboard', {
@@ -1871,7 +1875,7 @@ app.post('/student/request-join', authUser, (req, res) => {
   const studentId = req.session.user.id;
 
   const query = `INSERT INTO ig_join_requests (student_id, ig_id) VALUES (?, ?)`;
-  connection.query(query, [studentId, ig_id], (err) => {
+  pool.query(query, [studentId, ig_id], (err) => {
     if (err) {
       req.flash('error', 'Failed to send request');
       return res.redirect('/students/dashboard');
@@ -1891,7 +1895,7 @@ JOIN interest_groups ig ON r.ig_id = ig.id
 
   `;
 
-  connection.query(query, (err, results) => {
+  pool.query(query, (err, results) => {
     if (err) throw err;
     res.render('Admin/JoinRequestIG(Weijie)/manageJoinRequests', { requests: results });
   });
@@ -1902,14 +1906,14 @@ app.post('/admin/join-requests/:id/approve',authUser, authAdmin, (req, res) => {
   const requestId = req.params.id;
 
   const updateQuery = `UPDATE ig_join_requests SET status = 'approved' WHERE id = ?`;
-  connection.query(updateQuery, [requestId], (err) => {
+  pool.query(updateQuery, [requestId], (err) => {
     if (err) throw err;
 
     const insertMemberQuery = `
       INSERT INTO members (student_id, ig_id)
       SELECT student_id, ig_id FROM ig_join_requests WHERE id = ?
     `;
-    connection.query(insertMemberQuery, [requestId], (err2) => {
+    pool.query(insertMemberQuery, [requestId], (err2) => {
       if (err2) throw err2;
       res.redirect('/admin/join-requests');
     });
@@ -1919,7 +1923,7 @@ app.post('/admin/join-requests/:id/approve',authUser, authAdmin, (req, res) => {
 app.post('/admin/join-requests/:id/reject', authUser, authAdmin ,(req, res) => {
   const requestId = req.params.id;
   const query = `UPDATE ig_join_requests SET status = 'rejected' WHERE id = ?`;
-  connection.query(query, [requestId], (err) => {
+  pool.query(query, [requestId], (err) => {
     if (err) throw err;
     res.redirect('/admin/join-requests');
   });
@@ -1934,7 +1938,7 @@ app.get('/student/profile', authUser, (req, res) => {
     return res.redirect('/login');
   }
 
-  connection.query(
+  pool.query(
     'SELECT * FROM users WHERE id = ? AND roles = "student"',
     [studentId],
     (err, results) => {
@@ -1978,7 +1982,7 @@ app.post('/student/profile/update',authUser, upload.single('profileImage'), (req
     ? [fullname, email, phone_number, bio, profileImage, studentId]
     : [fullname, email, phone_number, bio, studentId];
 
-  connection.query(updateSql, values, (err, result) => {
+  pool.query(updateSql, values, (err, result) => {
     if (err) {
       console.error('Update error:', err);
       req.flash('error', 'Database error.');
@@ -2020,7 +2024,7 @@ app.post('/student/profile/reset-password',authUser, (req, res) => {
     }
 
     const sql = `UPDATE users SET password = ? WHERE id = ? AND roles = 'student'`;
-    connection.query(sql, [hashedPassword, userId], (err, result) => {
+    pool.query(sql, [hashedPassword, userId], (err, result) => {
       if (err) {
         console.error('Password update error:', err);
         req.flash('error', 'Database error during password update.');
@@ -2041,7 +2045,7 @@ app.get('/events',authUser, (req, res) => {
     ORDER BY e.date ASC
   `;
 
-  connection.query(sql, (err, results) => {
+  pool.query(sql, (err, results) => {
     if (err) {
       console.error('Error fetching events:', err);
       return res.status(500).send('Internal Server Error');
@@ -2066,7 +2070,7 @@ app.post('/students/igs/join/:id',authUser, (req, res) => {
   `;
 
   // Check if already requested to join (pending) or already a member
-  connection.query(checkJoinRequestSql, [studentId, igId], (err1, joinResults) => {
+  pool.query(checkJoinRequestSql, [studentId, igId], (err1, joinResults) => {
     if (err1) {
       console.error('Join check (requests) error:', err1);
       req.flash('error', 'Something went wrong.');
@@ -2078,7 +2082,7 @@ app.post('/students/igs/join/:id',authUser, (req, res) => {
       return res.redirect('/students/igs');
     }
 
-    connection.query(checkMemberSql, [studentId, igId], (err2, memberResults) => {
+    pool.query(checkMemberSql, [studentId, igId], (err2, memberResults) => {
       if (err2) {
         console.error('Join check (members) error:', err2);
         req.flash('error', 'Something went wrong.');
@@ -2095,7 +2099,7 @@ app.post('/students/igs/join/:id',authUser, (req, res) => {
         INSERT INTO ig_join_requests (student_id, ig_id, request_date, status)
         VALUES (?, ?, NOW(), 'pending')
       `;
-      connection.query(insertSql, [studentId, igId], (err3) => {
+      pool.query(insertSql, [studentId, igId], (err3) => {
         if (err3) {
           console.error('Request insert error:', err3);
           req.flash('error', 'Failed to request join.');
@@ -2130,19 +2134,19 @@ app.get('/students/igs',authUser , (req, res) => {
     SELECT ig_id, status FROM ig_join_requests WHERE student_id = ?
   `;
 
-  connection.query(igQuery, (err1, igs) => {
+  pool.query(igQuery, (err1, igs) => {
     if (err1) {
       console.error('Error fetching IGs:', err1);
       return res.send('Error loading IGs');
     }
 
-    connection.query(categoryQuery, (err2, categories) => {
+    pool.query(categoryQuery, (err2, categories) => {
       if (err2) {
         console.error('Error fetching categories:', err2);
         return res.send('Error loading categories');
       }
 
-      connection.query(joinedQuery, [studentId], (err3, joined) => {
+      pool.query(joinedQuery, [studentId], (err3, joined) => {
         if (err3) {
           console.error('Error fetching joined IGs:', err3);
           return res.send('Error loading joined IGs');
@@ -2150,7 +2154,7 @@ app.get('/students/igs',authUser , (req, res) => {
 
         const joinedIGIds = joined.map(j => j.ig_id);
 
-        connection.query(requestedQuery, [studentId], (err4, requests) => {
+        pool.query(requestedQuery, [studentId], (err4, requests) => {
           if (err4) {
             console.error('Error fetching join requests:', err4);
             return res.send('Error loading join requests');
@@ -2185,7 +2189,7 @@ app.get('/students/announcements' , authUser, (req, res) => {
     WHERE target_audience IN ('Students', 'All')
     ORDER BY created_at DESC
   `;
-  connection.query(sql, (err, results) => {
+  pool.query(sql, (err, results) => {
     if (err) {
       console.error('❌ Announcement fetch error:', err);
       req.flash('error', 'Failed to load announcements.');
@@ -2210,7 +2214,7 @@ app.get('/students/achievements',authUser , (req, res) => {
     ORDER BY date_awarded DESC
   `;
 
-  connection.query(sql, [studentId], (err, results) => {
+  pool.query(sql, [studentId], (err, results) => {
     if (err) {
       console.error("Achievement fetch error:", err);
       return res.status(500).send("Server Error");
@@ -2236,13 +2240,13 @@ app.get('/students/gallery', (req, res) => {
     ORDER BY gc.created_at ASC
   `;
 
-  connection.query(galleryQuery, (err, galleries) => {
+  pool.query(galleryQuery, (err, galleries) => {
     if (err) {
       console.error("❌ Gallery Query Error:", err);
       return res.status(500).send("Error fetching gallery");
     }
 
-    connection.query(commentsQuery, (err, comments) => {
+    pool.query(commentsQuery, (err, comments) => {
       if (err) {
         console.error("❌ Comments Query Error:", err);
         return res.status(500).send("Error fetching comments");
@@ -2283,7 +2287,7 @@ app.post('/students/gallery/:id/comment', authUser ,(req, res) => {
     VALUES (?, ?, ?, NOW())
   `;
 
-  connection.query(insertSql, [gallery_id, userId, comment], (err) => {
+  pool.query(insertSql, [gallery_id, userId, comment], (err) => {
     if (err) {
       console.error('Comment insert error:', err);
       req.flash('error', 'Failed to post comment.');
@@ -2305,7 +2309,7 @@ app.get('/students/schedule', authUser, (req, res) => {
     LEFT JOIN ig_schedule_rsvps r ON s.id = r.schedule_id AND r.student_id = ?
     ORDER BY s.meeting_schedule ASC`;
 
-  connection.query(sql, [studentId], (err, results) => {
+  pool.query(sql, [studentId], (err, results) => {
     if (err) {
       console.error('MySQL Error:', err);
       return res.send('Database error');
@@ -2324,7 +2328,7 @@ app.post('/students/schedule/:id/cancel-rsvp' , authUser , (req, res) => {
 
   const sql = `DELETE FROM schedule_rsvps WHERE schedule_id = ? AND student_id = ?`;
 
-  connection.query(sql, [scheduleId, studentId], (err, result) => {
+  pool.query(sql, [scheduleId, studentId], (err, result) => {
     if (err) {
       req.flash('error', 'Error canceling RSVP');
     }
@@ -2343,7 +2347,7 @@ app.post('/students/schedule/:id/rsvp',authUser , (req, res) => {
                VALUES (?, ?, ?)
                ON DUPLICATE KEY UPDATE status = ?`;
 
-  connection.query(sql, [scheduleId, studentId, status, status], (err, result) => {
+  pool.query(sql, [scheduleId, studentId, status, status], (err, result) => {
     if (err) {
       req.flash('error', 'Error saving RSVP');
     }
@@ -2364,7 +2368,7 @@ app.post('/request-ig', authUser , (req, res) => {
     INSERT INTO ig_join_requests (student_id, ig_id, reason, status, request_date)
     VALUES (?, ?, ?, 'Pending', NOW())
   `;
-  connection.query(sql, [studentId, ig_id, reason], (err, result) => {
+  pool.query(sql, [studentId, ig_id, reason], (err, result) => {
     if (err) {
       console.error('Request IG Error:', err);
       req.flash('error', 'Something went wrong. Please try again.');
