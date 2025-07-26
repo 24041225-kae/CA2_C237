@@ -10,7 +10,6 @@ const fs = require('fs');
 const app = express();
 const moment = require('moment');
 const checkDiskSpace = require('check-disk-space').default;
-const mysql = require('mysql2');
 require('dotenv').config();
 
 const connection = mysql.createConnection({
