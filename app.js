@@ -2352,11 +2352,11 @@ app.get('/students/schedule', authUser, (req, res) => {
 
   connection.query(sql, [studentId], (err, results) => {
     if (err) {
-      console.error('❌ MySQL Error:', err);
+      console.error('MySQL Error:', err);
       return res.send('Database error');
     }
 
-    res.render('Student/Schedule(Weijie)/schedule', { schedule: results });
+    res.render('Student/Schedule(Weijie)/Schedule', { schedule: results });
   });
 });
 
