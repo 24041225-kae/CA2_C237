@@ -1964,10 +1964,9 @@ app.get('/student/profile', authUser, (req, res) => {
   );
 });
 
-
-app.post('/student/profile/update',authUser, upload.single('profileImage'), (req, res) => {
+app.post('/student/profile/update', authUser, upload.single('profileImage'), (req, res) => {
   const { fullname, email, phone_number, bio } = req.body;
-  const profileImage = req.file ? req.file.filename : null;
+  const profileImage = req.file && req.file.originalname ? req.file.filename : null;
   const studentId = req.session.user.id;
 
   if (!fullname || !email || !phone_number) {
@@ -1983,17 +1982,18 @@ app.post('/student/profile/update',authUser, upload.single('profileImage'), (req
     ? [fullname, email, phone_number, bio, profileImage, studentId]
     : [fullname, email, phone_number, bio, studentId];
 
-  connection.query(updateSql, values, (err, result) => {
+  connection.query(updateSql, values, (err) => {
     if (err) {
       console.error('Update error:', err);
       req.flash('error', 'Database error.');
       return res.redirect('/student/profile');
     }
 
-    req.flash('success', 'Profile updated successfully.');
+    req.flash('success', profileImage ? 'Profile and image updated successfully.' : 'Profile updated successfully.');
     res.redirect('/student/profile');
   });
 });
+
 
 
 app.post('/student/profile/reset-password',authUser, (req, res) => {
