@@ -2342,19 +2342,22 @@ app.post('/students/schedule/:id/cancel-rsvp', authUser, (req, res) => {
 });
 
 
-
 app.post('/students/schedule/:id/rsvp', authUser, (req, res) => {
   const scheduleId = req.params.id;
   const studentId = req.session.user.id;
   const status = req.body.status || 'attending';
 
-  const sql = `INSERT INTO ig_schedule_rsvps (schedule_id, student_id, status)
-               VALUES (?, ?, ?)
-               ON DUPLICATE KEY UPDATE status = ?`;
+  console.log({ scheduleId, studentId, status });
 
-  connection.query(sql, [scheduleId, studentId, status, status], (err, result) => {
+  const sql = `
+    INSERT INTO ig_schedule_rsvps (schedule_id, student_id, status, rsvp_date)
+    VALUES (?, ?, ?, NOW())
+    ON DUPLICATE KEY UPDATE status = VALUES(status), rsvp_date = NOW()
+  `;
+
+  connection.query(sql, [scheduleId, studentId, status], (err, result) => {
     if (err) {
-      console.error('RSVP Error:', err);
+      console.error('❌ RSVP Error:', err);
       req.flash('errorMsg', '❌ Failed to RSVP');
     } else {
       req.flash('successMsg', '✅ RSVP submitted');
