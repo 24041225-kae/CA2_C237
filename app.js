@@ -21,15 +21,15 @@ const connection = mysql.createConnection({
 });
 
 connection.connect(err => {
-  if (err) return console.error('❌ MySQL error:', err);
-  console.log('✅ MySQL connected');
+  if (err) return console.error('MySQL error:', err);
+  console.log('MySQL connected');
 });
 
 // Ensure upload folder exists
 const uploadPath = path.join(__dirname, 'public/uploads');
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath, { recursive: true });
-  console.log('✅ Upload folder created');
+  console.log('Upload folder created');
 }
 
 // Multer Setup
@@ -49,7 +49,7 @@ app.set('view engine', 'ejs');
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(uploadPath)); // For images
+app.use('/uploads', express.static(uploadPath)); 
 
 // Session + Flash Middleware
 app.use(session({
@@ -60,9 +60,7 @@ app.use(session({
 }));
 app.use(flash());
 
-// MySQL Setup
 
-// });
 // // ---------- Middleware ----------
 const authUser = (req, res, next) => {
   if (req.session.user) return next();
@@ -79,7 +77,7 @@ const authAdmin = (req, res, next) => {
 
 
 
-// ✅ View All Announcements (Manage Page)
+// View All Announcements (Manage Page)
 
 app.get('/admin/announcements',authUser , authAdmin, (req, res) => {
   // Set filter to show only 'admin' target audience announcements
@@ -106,9 +104,6 @@ app.get('/admin/announcements',authUser , authAdmin, (req, res) => {
 });
 
 
-
-
-
 // Show Add Announcement Form
 app.get('/admin/announcements/add', authUser , authAdmin, (req, res) => {
   res.render('Admin/Announcement(Weijie)/addAnnouncement');
@@ -126,7 +121,7 @@ app.post('/admin/announcements/add', (req, res) => {
 
   connection.query(query, values, (err) => {
     if (err) {
-      console.error('❌ SQL INSERT ERROR:', err);  // LOG this
+      console.error('SQL INSERT ERROR:', err);  // LOG this
       req.flash('error', 'Failed to add announcement.');
       return res.redirect('/admin/announcements/add');
     }
@@ -184,24 +179,6 @@ app.post('/admin/announcements/delete/:id',authUser , authAdmin, (req, res) => {
   });
 });
 
-
-
-// //Route student dashboard
-// // app.get('Student/studentDashboard', authUser, (req, res) => {
-// //   if (req.session.user.roles === 'student') {
-// //     return res.render('Student/studentDashboard', {
-// //       user: req.session.user.username,
-// //       successMsg: req.flash('successMsg'),
-// //       errorMsg: req.flash('errorMsg')
-// //     });
-// //   } else {
-// //     req.flash('errorMsg', 'Access denied. Students only.');
-// //     return res.redirect('/admindashboard');
-// //   }
-// // });
-
-
-
 // GET route to render the "Manage Events" page
 app.get('/admin/events',authUser , authAdmin, (req, res) => {
   const query = `
@@ -258,10 +235,6 @@ app.get('/admin/gallery',authUser , authAdmin,(req, res) => {
     });
   });
 });
-
-// POST route to add a new gallery item
-
-
 
 // POST route to handle gallery item addition
 app.post('/admin/gallery/add',authUser , authAdmin, upload.single('media_url'), (req, res) => {
@@ -456,9 +429,6 @@ app.get("/logout", (req, res) => {
     return res.redirect('/login');
   }
 });
-
-
-
 
 
 // Route to fetch comments for a specific gallery item
@@ -692,15 +662,7 @@ app.get('/admin/events/add',authUser , authAdmin, (req, res) => {
   });
 });
 
-
-
-
-
 // POST route to add an event
-// // POST route to add a new event
-
-
-
 
 app.post('/admin/events/add',authUser , authAdmin, (req, res) => {
   const { event_name, event_date, location, ig_id, event_description } = req.body;
@@ -891,8 +853,6 @@ app.post('/admin/profile/update',authUser , authAdmin,  upload.single('profileIm
 
 // POST Change Admin Password
 
-//  POST Change Admin Password
-
 app.post('/admin/profile/password',authUser , authAdmin ,async (req, res) => {
   const userId = req.session?.user?.id;
   const { newPassword, confirmPassword } = req.body;
@@ -1067,7 +1027,6 @@ app.post('/admin/manage-igs/delete/:id',authUser , authAdmin, (req, res) => {
     res.redirect('/admin/manage-igs');
   });
 });
-
 
 
 // GET route to render the Edit IG page
@@ -1259,7 +1218,6 @@ app.post('/admin/manage-categories/delete/:id',authUser , authAdmin, (req, res) 
 });
 
 
-// //WEIJIE #WEIJIE 
 // // Admin Dashboard Route
 app.get("/admin",authUser , authAdmin,  async (req, res) => {
   try {
@@ -1281,7 +1239,7 @@ app.get("/admin",authUser , authAdmin,  async (req, res) => {
 
     const lastBackup = '20 July 2025'; // Example value
 
-    // 📥 Recent Activities
+    // Recent Activities
     const [recentMembers] = await connection.promise().query(`
       SELECT s.name AS student_name, ig.name AS ig_name, m.created_at
       FROM members m
@@ -1337,7 +1295,7 @@ app.get("/admin",authUser , authAdmin,  async (req, res) => {
     // Sort by real timestamps
     activityFeed.sort((a, b) => b.time.valueOf() - a.time.valueOf());
 
-    // 📅 Upcoming Events
+    // Upcoming Events
     const [rawEvents] = await connection.promise().query(`
      SELECT * FROM events WHERE date >= CURDATE()
     `);
@@ -1347,8 +1305,8 @@ app.get("/admin",authUser , authAdmin,  async (req, res) => {
       date: moment(event.date).format('DD MMM YYYY'),
       ig_name: event.ig_name
     }));
-// 📨 IG Join Requests (latest 5)
-// 📨 IG Join Requests (latest 5)
+
+// IG Join Requests (latest 5)
 const [joinRequests] = await connection.promise().query(`
   SELECT r.id, s.name AS student_name, ig.name AS ig_name, r.status, r.request_date
   FROM ig_join_requests r
@@ -1580,10 +1538,6 @@ app.post('/admin/achievements/delete/:id',authUser , authAdmin, (req, res) => {
 });
 
 
-
-
-
-
 // Display all schedules with optional searchc
 app.get('/admin/meeting_schedule',authUser , authAdmin, (req, res) => {
   const searchTerm = req.query.search || '';
@@ -1739,9 +1693,6 @@ app.post('/admin/delete_schedule/:id',authUser , authAdmin, (req, res) => {
 });
 
 
-
-
-
 // // POST: Update admin profile
 app.post('/admin/profile/update',authUser , authAdmin, upload.single('profile_image'), (req, res) => {
   const { fullname, email, password } = req.body;
@@ -1824,7 +1775,6 @@ app.get('/admin/schedules/:id/rsvps', (req, res) => {
     });
   });
 });
-
 
 
 
@@ -1951,12 +1901,10 @@ JOIN interest_groups ig ON r.ig_id = ig.id
 app.post('/admin/join-requests/:id/approve',authUser, authAdmin, (req, res) => {
   const requestId = req.params.id;
 
-  // First, approve the request
   const updateQuery = `UPDATE ig_join_requests SET status = 'approved' WHERE id = ?`;
   connection.query(updateQuery, [requestId], (err) => {
     if (err) throw err;
 
-    // Then insert into members table
     const insertMemberQuery = `
       INSERT INTO members (student_id, ig_id)
       SELECT student_id, ig_id FROM ig_join_requests WHERE id = ?
@@ -1997,13 +1945,13 @@ app.get('/student/profile', authUser, (req, res) => {
 
       const student = results[0];
       const loginInfo = student.last_login
-        ? `🕒 ${new Date(student.last_login).toLocaleString('en-SG')} – ${student.last_browser} (${student.login_success ? '✅' : '❌'})`
+        ? `${new Date(student.last_login).toLocaleString('en-SG')} – ${student.last_browser} (${student.login_success ? '✅' : '❌'})`
         : 'No login info yet';
 
       res.render('Student/profile(weijie)/profile', {
         student,
         loginInfo,
-        activePage: 'profile', // ✅ Add this line
+        activePage: 'profile', 
         success: req.flash('success'),
         error: req.flash('error')
       });
@@ -2032,7 +1980,7 @@ app.post('/student/profile/update',authUser, upload.single('profileImage'), (req
 
   connection.query(updateSql, values, (err, result) => {
     if (err) {
-      console.error('❌ Update error:', err);
+      console.error('Update error:', err);
       req.flash('error', 'Database error.');
       return res.redirect('/student/profile');
     }
@@ -2074,7 +2022,7 @@ app.post('/student/profile/reset-password',authUser, (req, res) => {
     const sql = `UPDATE users SET password = ? WHERE id = ? AND roles = 'student'`;
     connection.query(sql, [hashedPassword, userId], (err, result) => {
       if (err) {
-        console.error('❌ Password update error:', err);
+        console.error('Password update error:', err);
         req.flash('error', 'Database error during password update.');
         return res.redirect('/student/profile');
       }
@@ -2095,7 +2043,7 @@ app.get('/events',authUser, (req, res) => {
 
   connection.query(sql, (err, results) => {
     if (err) {
-      console.error('❌ Error fetching events:', err);
+      console.error('Error fetching events:', err);
       return res.status(500).send('Internal Server Error');
     }
     res.render('Student/events(Deen)/events', { events: results });
@@ -2120,7 +2068,7 @@ app.post('/students/igs/join/:id',authUser, (req, res) => {
   // Check if already requested to join (pending) or already a member
   connection.query(checkJoinRequestSql, [studentId, igId], (err1, joinResults) => {
     if (err1) {
-      console.error('❌ Join check (requests) error:', err1);
+      console.error('Join check (requests) error:', err1);
       req.flash('error', 'Something went wrong.');
       return res.redirect('/students/igs');
     }
@@ -2132,7 +2080,7 @@ app.post('/students/igs/join/:id',authUser, (req, res) => {
 
     connection.query(checkMemberSql, [studentId, igId], (err2, memberResults) => {
       if (err2) {
-        console.error('❌ Join check (members) error:', err2);
+        console.error('Join check (members) error:', err2);
         req.flash('error', 'Something went wrong.');
         return res.redirect('/students/igs');
       }
@@ -2149,7 +2097,7 @@ app.post('/students/igs/join/:id',authUser, (req, res) => {
       `;
       connection.query(insertSql, [studentId, igId], (err3) => {
         if (err3) {
-          console.error('❌ Request insert error:', err3);
+          console.error('Request insert error:', err3);
           req.flash('error', 'Failed to request join.');
           return res.redirect('/students/igs');
         }
@@ -2184,19 +2132,19 @@ app.get('/students/igs',authUser , (req, res) => {
 
   connection.query(igQuery, (err1, igs) => {
     if (err1) {
-      console.error('❌ Error fetching IGs:', err1);
+      console.error('Error fetching IGs:', err1);
       return res.send('Error loading IGs');
     }
 
     connection.query(categoryQuery, (err2, categories) => {
       if (err2) {
-        console.error('❌ Error fetching categories:', err2);
+        console.error('Error fetching categories:', err2);
         return res.send('Error loading categories');
       }
 
       connection.query(joinedQuery, [studentId], (err3, joined) => {
         if (err3) {
-          console.error('❌ Error fetching joined IGs:', err3);
+          console.error('Error fetching joined IGs:', err3);
           return res.send('Error loading joined IGs');
         }
 
@@ -2204,7 +2152,7 @@ app.get('/students/igs',authUser , (req, res) => {
 
         connection.query(requestedQuery, [studentId], (err4, requests) => {
           if (err4) {
-            console.error('❌ Error fetching join requests:', err4);
+            console.error('Error fetching join requests:', err4);
             return res.send('Error loading join requests');
           }
 
@@ -2231,9 +2179,6 @@ app.get('/students/igs',authUser , (req, res) => {
 });
 
 
-
-
-
 app.get('/students/announcements' , authUser, (req, res) => {
   const sql = `
     SELECT * FROM announcements
@@ -2257,7 +2202,7 @@ app.get('/students/announcements' , authUser, (req, res) => {
 
 
 app.get('/students/achievements',authUser , (req, res) => {
-  const studentId = req.session.user.id; // Assuming session stores logged-in student
+  const studentId = req.session.user.id; 
 
   const sql = `
     SELECT * FROM student_achievements
@@ -2267,7 +2212,7 @@ app.get('/students/achievements',authUser , (req, res) => {
 
   connection.query(sql, [studentId], (err, results) => {
     if (err) {
-      console.error("❌ Achievement fetch error:", err);
+      console.error("Achievement fetch error:", err);
       return res.status(500).send("Server Error");
     }
 
@@ -2318,7 +2263,6 @@ app.get('/students/gallery', (req, res) => {
   });
 });
 
-
 app.post('/students/gallery/:id/comment', authUser ,(req, res) => {
   const gallery_id = req.params.id;
   const { comment } = req.body;
@@ -2341,7 +2285,7 @@ app.post('/students/gallery/:id/comment', authUser ,(req, res) => {
 
   connection.query(insertSql, [gallery_id, userId, comment], (err) => {
     if (err) {
-      console.error('❌ Comment insert error:', err);
+      console.error('Comment insert error:', err);
       req.flash('error', 'Failed to post comment.');
       return res.redirect('/students/gallery');
     }
@@ -2407,9 +2351,9 @@ app.post('/students/schedule/:id/rsvp',authUser , (req, res) => {
   });
 });
 
-app.post('/request-ig', (req, res) => {
+app.post('/request-ig', authUser , (req, res) => {
   const { ig_id, reason } = req.body;
-  const studentId = req.session.user.id; // assuming session has user info
+  const studentId = req.session.user.id; 
 
   if (!ig_id || !reason) {
     req.flash('error', 'Please fill in all fields.');
@@ -2422,7 +2366,7 @@ app.post('/request-ig', (req, res) => {
   `;
   connection.query(sql, [studentId, ig_id, reason], (err, result) => {
     if (err) {
-      console.error('❌ Request IG Error:', err);
+      console.error('Request IG Error:', err);
       req.flash('error', 'Something went wrong. Please try again.');
     } else {
       req.flash('success', 'Your request has been submitted!');
@@ -2430,8 +2374,6 @@ app.post('/request-ig', (req, res) => {
     res.redirect('/students/dashboard');
   });
 });
-
-
 
 // ---------- Start Server ----------
 app.listen(3000, () => {
