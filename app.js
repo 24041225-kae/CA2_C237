@@ -10,17 +10,15 @@ const fs = require('fs');
 const app = express();
 const moment = require('moment');
 const checkDiskSpace = require('check-disk-space').default;
-
+require('dotenv').config();  // Make sure this is at the very top!
 // MySQL Setup
 const connection = mysql.createConnection({
-  connectionLimit:1000,
-  waitForConnections:true,
-  host:"sql12.freesqldatabase.com",
-  database:"sql12792026",
-  user:"sql12792026",
-  port:3306,
-  password:"zQyklmiwjk"
-})
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT || 3306,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+});
 connection.query(err => {
   if (err) return console.error('MySQL error:', err);
   console.log('MySQL connected');
