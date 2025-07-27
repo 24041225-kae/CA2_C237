@@ -10,18 +10,18 @@ const fs = require('fs');
 const app = express();
 const moment = require('moment');
 const checkDiskSpace = require('check-disk-space').default;
-require('dotenv').config();
+// require('dotenv').config();
 
 const connection = mysql.createConnection({
-  // host: "localhost",
-  // user: "root",
-  // // password: "Group5@123?",
-  // database: "igconnect",
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  host: "localhost",
+  user: "root",
+  password: "Group5@123?",
+  database: "igconnect",
+  // host: process.env.DB_HOST,
+  // port: process.env.DB_PORT || 3306,
+  // user: process.env.DB_USER,
+  // password: process.env.DB_PASSWORD,
+  // database: process.env.DB_NAME,
 });
 
 connection.connect(err => {
@@ -1048,20 +1048,45 @@ app.post('/admin/manage-igs/add',authUser , authAdmin, (req, res) => {
   });
 });
 
-
-// POST route to delete an Interest Group
-app.post('/admin/manage-igs/delete/:id',authUser , authAdmin, (req, res) => {
+app.post('/admin/manage-igs/delete/:id', authUser, authAdmin, (req, res) => {
   const { id } = req.params;
-  
-  connection.query('DELETE FROM interest_groups WHERE id = ?', [id], (err) => {
-    if (err) {
-      req.flash('error', 'Failed to delete interest group');
-    } else {
-      req.flash('success', 'Interest group deleted');
-    }
-    res.redirect('/admin/manage-igs');
-  });
-});
+
+  // First, delete from referencing tables
+  const deleteMembers = 'DELETE FROM members WHERE ig_id = ?';
+  const deleteEvents = 'DELETE FROM events WHERE ig_id = ?';
+  const deleteJoinRequests = 'DELETE FROM ig_join_requests WHERE ig_id = ?';
+  const deleteGallery = 'DELETE FROM galleries WHERE ig_id = ?';
+
+  connection.query(deleteMembers, [id], (err) => {
+    if (err) return res.send('Failed to delete members for IG');
+
+    connection.query(deleteEvents, [id], (err) => {
+      if (err) return res.send('Failed to delete events for IG');
+
+      connection.query(deleteJoinRequests, [id], (err) => {
+        if (err) return res.send('Failed to delete join requests for IG');
+
+        connection.query(deleteGallery, [id], (err) => {
+          if (err) return res.send('Failed to delete gallery items for IG');
+
+         
+
+              // Now delete the IG itself
+              connection.query('DELETE FROM interest_groups WHERE id = ?', [id], (err) => {
+                if (err) {
+                  req.flash('error', 'Still failed to delete IG');
+                } else {
+                  req.flash('success', 'Interest Group deleted!');
+                }
+                res.redirect('/admin/manage-igs');
+              });
+            });
+          });
+        });
+      });
+    });
+
+
 
 
 // GET route to render the Edit IG page
@@ -1978,32 +2003,36 @@ app.post('/admin/ig/:igId/members/delete/:memberId', authAdmin, (req, res) => {
     }
     res.redirect(`/admin/ig/${igId}/members`);
   });
-});
-
-app.get('/admin/manage-members', authAdmin, (req, res) => {
-  const query = `
-    SELECT m.id AS member_id, u.fullname AS student_name, u.email, ig.name AS ig_name, m.joined_date
-FROM members m
-JOIN users u ON m.student_id = u.id
-JOIN interest_groups ig ON m.ig_id = ig.id
-ORDER BY m.joined_date DESC
-
+});app.get('/admin/manage-members', authUser, authAdmin, (req, res) => {
+  const sql = `
+    SELECT 
+      m.id AS member_id,
+      m.ig_id,
+      u.fullname AS student_name,
+      u.email,
+      u.username,
+      ig.name AS ig_name
+    FROM members m
+    JOIN users u ON m.student_id = u.id
+    JOIN interest_groups ig ON m.ig_id = ig.id
+    ORDER BY ig.name, u.fullname
   `;
 
-  connection.query(query, (err, results) => {
+  connection.query(sql, (err, results) => {
     if (err) {
-      console.error('❌ Error fetching IG members:', err);
-      req.flash('error', 'Failed to load IG members.');
-      return res.render('Admin/IG(Siti)/manageAllMebers', { members: [] });
+      console.error('❌ Fetch error:', err);
+      return res.status(500).send('Database error');
     }
 
     res.render('Admin/IG(Siti)/manageAllMebers', {
       members: results,
-      success: req.flash("success"),
-      error: req.flash("error")
+      success: req.flash('success'),
+      error: req.flash('error'),
     });
   });
 });
+
+
 
 
 
