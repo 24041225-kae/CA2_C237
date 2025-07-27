@@ -120,9 +120,10 @@
           <label for="ig_id" class="form-label">Select Interest Group</label>
           <select name="ig_id" id="ig_id" class="form-select" required>
             <option value="" disabled selected>Select Category</option>
-            <% ig_id.forEach(ig => { %>
-              <option value="<%= ig.id %>"><%= ig.name %></option>
-            <% }) %>
+           <% interestGroups.forEach(ig => { %>
+  <option value="<%= ig.category_id %>"><%= ig.name %></option>
+<% }) %>
+
           </select>
         </div>
 

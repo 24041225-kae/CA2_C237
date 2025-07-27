@@ -10,14 +10,18 @@ const fs = require('fs');
 const app = express();
 const moment = require('moment');
 const checkDiskSpace = require('check-disk-space').default;
-require('dotenv').config();
+// require('dotenv').config();
 
 const connection = mysql.createConnection({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  host: "localhost",
+  user: "root",
+  password: "Group5@123?",
+  database: "igconnect",
+  // host: process.env.DB_HOST,
+  // port: process.env.DB_PORT || 3306,
+  // user: process.env.DB_USER,
+  // password: process.env.DB_PASSWORD,
+  // database: process.env.DB_NAME,
 });
 
 connection.connect(err => {
@@ -644,19 +648,17 @@ app.post('/reset-password', async (req, res) => {
 
 
 
-app.get('/admin/events/add',authUser , authAdmin, (req, res) => {
-  // Query to fetch all categories (interest groups)
-  const query = `SELECT * FROM ig_categories`;
-  
-  connection.query(query, (err, categories) => {
+app.get('/admin/events/add', authUser, authAdmin, (req, res) => {
+  const query = `SELECT category_id, name FROM interest_groups`;
+
+  connection.query(query, (err, interestGroups) => {
     if (err) {
-      req.flash('error', 'Failed to load categories.');
+      req.flash('error', 'Failed to load interest groups.');
       return res.redirect('/admin/events');
     }
 
-    // Render Add Event page with categories
-    res.render('Admin/Events(Weijie)/AddEvents', { 
-      ig_id: categories,
+    res.render('Admin/Events(Weijie)/AddEvents', {
+      interestGroups,
       successMsg: req.flash('success'),
       errorMsg: req.flash('error')
     });
@@ -665,16 +667,15 @@ app.get('/admin/events/add',authUser , authAdmin, (req, res) => {
 
 // POST route to add an event
 
-app.post('/admin/events/add',authUser , authAdmin, (req, res) => {
+app.post('/admin/events/add', authUser, authAdmin, (req, res) => {
   const { event_name, event_date, location, ig_id, event_description } = req.body;
 
-  
-  // Validate if category_id exists in interest_groups
-  const checkCategoryQuery = 'SELECT id FROM interest_groups WHERE id = ?';
-  
-  connection.query(checkCategoryQuery, [ig_id], (err, result) => {
+  // Match against category_id since that's now the PK
+  const checkIGQuery = 'SELECT category_id FROM interest_groups WHERE category_id = ?';
+
+  connection.query(checkIGQuery, [ig_id], (err, result) => {
     if (err) {
-      req.flash('error', 'Error validating category ID');
+      req.flash('error', 'Error validating Interest Group');
       return res.redirect('/admin/events/add');
     }
 
@@ -683,22 +684,25 @@ app.post('/admin/events/add',authUser , authAdmin, (req, res) => {
       return res.redirect('/admin/events/add');
     }
 
-    // Proceed to insert the event if category_id is valid
     const query = `
-      INSERT INTO events ( ig_id,name, date, location,description)
+      INSERT INTO events (ig_id, name, date, location, description)
       VALUES (?, ?, ?, ?, ?)
     `;
 
-    connection.query(query, [ig_id,event_name, event_date, location, event_description], (err, results) => {
+    connection.query(query, [ig_id, event_name, event_date, location, event_description], (err, results) => {
       if (err) {
+        console.error('🚨 SQL Error:', err);
         req.flash('error', 'Failed to add event. Please try again.');
         return res.redirect('/admin/events/add');
       }
+
       req.flash('success', 'Event added successfully!');
       return res.redirect('/admin/events');
     });
   });
 });
+
+
 
 
 
@@ -1242,12 +1246,13 @@ app.get("/admin",authUser , authAdmin,  async (req, res) => {
 
     // Recent Activities
     const [recentMembers] = await connection.promise().query(`
-      SELECT s.name AS student_name, ig.name AS ig_name, m.created_at
-      FROM members m
-      JOIN students s ON m.student_id = s.id
-      JOIN interest_groups ig ON m.ig_id = ig.id
-      ORDER BY m.created_at DESC
-      LIMIT 3
+      SELECT u.fullname AS student_name, ig.name AS ig_name, m.created_at
+FROM members m
+JOIN users u ON m.student_id = u.id
+JOIN interest_groups ig ON m.ig_id = ig.id
+ORDER BY m.created_at DESC
+LIMIT 3;
+
     `);
 
     const [recentIGUpdates] = await connection.promise().query(`
@@ -1257,11 +1262,12 @@ app.get("/admin",authUser , authAdmin,  async (req, res) => {
     `);
 
     const [recentGallery] = await connection.promise().query(`
-      SELECT s.name AS uploaded_by, g.created_at
-      FROM galleries g
-      JOIN students s ON g.student_id = s.id
-      ORDER BY g.created_at DESC
-      LIMIT 3
+    SELECT u.fullname AS uploaded_by, g.created_at
+FROM galleries g
+JOIN users u ON g.student_id = u.id
+ORDER BY g.created_at DESC
+LIMIT 3;
+
     `);
 
     const [totalAnnouments] = await connection.promise().query('SELECT COUNT(*) AS count FROM announcements');
@@ -1309,12 +1315,13 @@ app.get("/admin",authUser , authAdmin,  async (req, res) => {
 
 // IG Join Requests (latest 5)
 const [joinRequests] = await connection.promise().query(`
-  SELECT r.id, s.name AS student_name, ig.name AS ig_name, r.status, r.request_date
-  FROM ig_join_requests r
-  JOIN students s ON r.student_id = s.id
-  JOIN interest_groups ig ON r.ig_id = ig.id
-  ORDER BY r.request_date DESC
-  LIMIT 5
+ SELECT r.id, u.fullname AS student_name, ig.name AS ig_name, r.status, r.request_date
+FROM ig_join_requests r
+JOIN users u ON r.student_id = u.id
+JOIN interest_groups ig ON r.ig_id = ig.id
+ORDER BY r.request_date DESC
+LIMIT 5;
+
 `);
 
 const recentJoinRequests = joinRequests.map(r => ({
@@ -1327,15 +1334,18 @@ const recentJoinRequests = joinRequests.map(r => ({
 
     //  Recent Comments
     const [recentComments] = await connection.promise().query(`
-      SELECT c.comment, c.created_at, s.name AS commenter
-      FROM gallery_comments c
-      JOIN students s ON c.student_id = s.id
-      ORDER BY c.created_at DESC
-      LIMIT 5
+     SELECT c.comment, c.created_at, u.fullname AS commenter
+FROM gallery_comments c
+JOIN users u ON c.student_id = u.id
+ORDER BY c.created_at DESC
+LIMIT 5;
+
     `);
 
     // Summary Stats
-    const [students] = await connection.promise().query('SELECT COUNT(*) AS count FROM students');
+const [students] = await connection.promise().query(
+  'SELECT COUNT(*) AS count FROM users WHERE roles = "student"'
+);
     const [igs] = await connection.promise().query('SELECT COUNT(*) AS count FROM interest_groups');
     const [events] = await connection.promise().query("SELECT COUNT(*) AS count FROM events WHERE date >= CURDATE()");
     const [schools] = await connection.promise().query('SELECT COUNT(*) AS count FROM schools');
@@ -1368,7 +1378,6 @@ const recentJoinRequests = joinRequests.map(r => ({
       lastBackup,
       totalAnnouments: totalAnnouments[0].count,
         recentJoinRequests, 
-
       moment
     });
 
@@ -1377,12 +1386,13 @@ const recentJoinRequests = joinRequests.map(r => ({
   }
 });
 
-
-app.get('/admin/achievements',authUser , authAdmin, (req, res) => {
+// ✅ View All Achievements
+app.get('/admin/achievements', authUser, authAdmin, (req, res) => {
   const sql = `
-    SELECT sa.*, s.name AS student_name
+    SELECT sa.*, u.fullname AS student_name
     FROM student_achievements sa
-    JOIN students s ON sa.student_id = s.id
+    JOIN users u ON sa.student_id = u.id
+    WHERE u.roles = 'student'
     ORDER BY sa.date_awarded DESC
   `;
 
@@ -1394,50 +1404,50 @@ app.get('/admin/achievements',authUser , authAdmin, (req, res) => {
   });
 });
 
-// Fetch student data for the select dropdown
-app.get('/admin/achievements/add',authUser , authAdmin,(req, res) => {
-  connection.query('SELECT id, name FROM students', (err, students) => {
+
+// ✅ Render Add Achievement Page (with student dropdown)
+app.get('/admin/achievements/add', authUser, authAdmin, (req, res) => {
+  const getStudents = `SELECT id, fullname AS name FROM users WHERE roles = 'student'`;
+
+  connection.query(getStudents, (err, students) => {
     if (err) return res.status(500).send('Database error.');
-    res.render('Admin/Achievements(Kal)/addAchievement', { students });
+    res.render('Admin/Achievements(Kal)/addAchievement', {
+      students,
+      successMsg: req.flash('success'),
+      errorMsg: req.flash('error')
+    });
   });
 });
 
-// POST route for adding achievements
-app.post('/admin/achievements/add',authUser , authAdmin, (req, res) => {
+
+// ✅ Handle Add Achievement POST
+app.post('/admin/achievements/add', authUser, authAdmin, (req, res) => {
   const { student_id, title, description, date_awarded } = req.body;
 
-  // SQL query to insert the achievement into the database
   const sql = `
     INSERT INTO student_achievements (student_id, title, description, date_awarded)
     VALUES (?, ?, ?, ?)
   `;
 
-  // Execute the query with the provided data
   connection.query(sql, [student_id, title, description, date_awarded], (err, result) => {
     if (err) {
       console.error('Error inserting achievement:', err);
-      return res.status(500).send('Database error.');
+      req.flash('error', 'Failed to add achievement.');
+      return res.redirect('/admin/achievements/add');
     }
 
-    // Redirect to achievements dashboard after success
+    req.flash('success', 'Achievement added successfully!');
     res.redirect('/admin/achievements');
   });
 });
 
 
-// GET route to render the edit achievement page with existing achievement and students data
-app.get('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
+// ✅ Render Edit Achievement Page
+app.get('/admin/achievements/edit/:id', authUser, authAdmin, (req, res) => {
   const achievementId = req.params.id;
+  const getAchievement = `SELECT * FROM student_achievements WHERE id = ?`;
+  const getStudents = `SELECT id, fullname AS name FROM users WHERE roles = 'student'`;
 
-  // Query to get the achievement details based on the provided id
-  const getAchievement = `
-    SELECT * FROM student_achievements WHERE id = ?
-  `;
-  const getStudents = `
-    SELECT id, name FROM students
-  `;
-
-  // Fetch the achievement details from the database
   connection.query(getAchievement, [achievementId], (err, achievementResults) => {
     if (err || achievementResults.length === 0) {
       req.flash('error', 'Achievement not found.');
@@ -1446,25 +1456,23 @@ app.get('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
 
     const achievement = achievementResults[0];
 
-    // Fetch the students list
     connection.query(getStudents, (err2, students) => {
       if (err2) {
         req.flash('error', 'Failed to fetch student list.');
         return res.redirect('/admin/achievements');
       }
 
-      // Render the edit page with achievement and students data
       res.render('Admin/Achievements(Kal)/editAchievement', { achievement, students });
     });
   });
 });
 
-// POST route to update the achievement details in the database
-app.post('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
+
+// ✅ Handle Edit POST
+app.post('/admin/achievements/edit/:id', authUser, authAdmin, (req, res) => {
   const achievementId = req.params.id;
   const { student_id, title, description, date_awarded } = req.body;
 
-  // Query to update the achievement details in the database
   const updateQuery = `
     UPDATE student_achievements
     SET student_id = ?, title = ?, description = ?, date_awarded = ?
@@ -1478,52 +1486,16 @@ app.post('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
       return res.redirect(`/admin/achievements/edit/${achievementId}`);
     }
 
-    // Redirect back to the achievements list page after successful update
     req.flash('success', 'Achievement updated successfully.');
     res.redirect('/admin/achievements');
   });
 });
 
 
-// GET route to render the edit achievement page with existing achievement and students data
-app.get('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
+// ✅ Handle Delete
+app.post('/admin/achievements/delete/:id', authUser, authAdmin, (req, res) => {
   const achievementId = req.params.id;
 
-  // Query to get the achievement details based on the provided id
-  const getAchievement = `
-    SELECT * FROM student_achievements WHERE id = ?
-  `;
-  const getStudents = `
-    SELECT id, name FROM students
-  `;
-
-  // Fetch the achievement details from the database
-  connection.query(getAchievement, [achievementId], (err, achievementResults) => {
-    if (err || achievementResults.length === 0) {
-      req.flash('error', 'Achievement not found.');
-      return res.redirect('/admin/achievements');
-    }
-
-    const achievement = achievementResults[0];
-
-    // Fetch the students list
-    connection.query(getStudents, (err2, students) => {
-      if (err2) {
-        req.flash('error', 'Failed to fetch student list.');
-        return res.redirect('/admin/achievements');
-      }
-
-      // Render the edit page with achievement and students data
-      res.render('Admin/Achievements(Kal)/editAchievement', { achievement, students });
-    });
-  });
-});
-
-// Route to delete an achievement
-app.post('/admin/achievements/delete/:id',authUser , authAdmin, (req, res) => {
-  const achievementId = req.params.id;
-
-  // SQL query to delete the achievement from the database
   const deleteQuery = 'DELETE FROM student_achievements WHERE id = ?';
 
   connection.query(deleteQuery, [achievementId], (err, result) => {
@@ -1537,6 +1509,168 @@ app.post('/admin/achievements/delete/:id',authUser , authAdmin, (req, res) => {
     res.redirect('/admin/achievements');
   });
 });
+
+// app.get('/admin/achievements',authUser , authAdmin, (req, res) => {
+//   const sql = `
+//   SELECT sa.*, u.fullname AS student_name
+//   FROM student_achievements sa
+//   JOIN users u ON sa.student_id = u.id
+//   WHERE u.roles = 'student'
+//   ORDER BY sa.date_awarded DESC
+// `;
+
+
+//   connection.query(sql, (err, results) => {
+//     if (err) {
+//       return res.status(500).send('Database error');
+//     }
+//     res.render('Admin/Achievements(Kal)/manageAchievements', { achievements: results });
+//   });
+// });
+
+// // Fetch student data for the select dropdown
+// app.get('/admin/achievements/add',authUser , authAdmin,(req, res) => {
+//   connection.query('SELECT id, name FROM students', (err, students) => {
+//     if (err) return res.status(500).send('Database error.');
+//     res.render('Admin/Achievements(Kal)/addAchievement', { students });
+//   });
+// });
+
+// // POST route for adding achievements
+// app.post('/admin/achievements/add',authUser , authAdmin, (req, res) => {
+//   const { student_id, title, description, date_awarded } = req.body;
+
+//   // SQL query to insert the achievement into the database
+//   const sql = `
+//     INSERT INTO student_achievements (student_id, title, description, date_awarded)
+//     VALUES (?, ?, ?, ?)
+//   `;
+
+//   // Execute the query with the provided data
+//   connection.query(sql, [student_id, title, description, date_awarded], (err, result) => {
+//     if (err) {
+//       console.error('Error inserting achievement:', err);
+//       return res.status(500).send('Database error.');
+//     }
+
+//     // Redirect to achievements dashboard after success
+//     res.redirect('/admin/achievements');
+//   });
+// });
+
+
+// // GET route to render the edit achievement page with existing achievement and students data
+// app.get('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
+//   const achievementId = req.params.id;
+
+//   // Query to get the achievement details based on the provided id
+//   const getAchievement = `
+//     SELECT * FROM student_achievements WHERE id = ?
+//   `;
+//   const getStudents = `
+//     SELECT id, name FROM students
+//   `;
+
+//   // Fetch the achievement details from the database
+//   connection.query(getAchievement, [achievementId], (err, achievementResults) => {
+//     if (err || achievementResults.length === 0) {
+//       req.flash('error', 'Achievement not found.');
+//       return res.redirect('/admin/achievements');
+//     }
+
+//     const achievement = achievementResults[0];
+
+//     // Fetch the students list
+//     connection.query(getStudents, (err2, students) => {
+//       if (err2) {
+//         req.flash('error', 'Failed to fetch student list.');
+//         return res.redirect('/admin/achievements');
+//       }
+
+//       // Render the edit page with achievement and students data
+//       res.render('Admin/Achievements(Kal)/editAchievement', { achievement, students });
+//     });
+//   });
+// });
+
+// // POST route to update the achievement details in the database
+// app.post('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
+//   const achievementId = req.params.id;
+//   const { student_id, title, description, date_awarded } = req.body;
+
+//   // Query to update the achievement details in the database
+//   const updateQuery = `
+//     UPDATE student_achievements
+//     SET student_id = ?, title = ?, description = ?, date_awarded = ?
+//     WHERE id = ?
+//   `;
+
+//   connection.query(updateQuery, [student_id, title, description, date_awarded, achievementId], (err, result) => {
+//     if (err) {
+//       console.error('Error updating achievement:', err);
+//       req.flash('error', 'Error updating achievement.');
+//       return res.redirect(`/admin/achievements/edit/${achievementId}`);
+//     }
+
+//     // Redirect back to the achievements list page after successful update
+//     req.flash('success', 'Achievement updated successfully.');
+//     res.redirect('/admin/achievements');
+//   });
+// });
+
+
+// // GET route to render the edit achievement page with existing achievement and students data
+// app.get('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
+//   const achievementId = req.params.id;
+
+//   // Query to get the achievement details based on the provided id
+//   const getAchievement = `
+//     SELECT * FROM student_achievements WHERE id = ?
+//   `;
+//   const getStudents = `
+//     SELECT id, name FROM students
+//   `;
+
+//   // Fetch the achievement details from the database
+//   connection.query(getAchievement, [achievementId], (err, achievementResults) => {
+//     if (err || achievementResults.length === 0) {
+//       req.flash('error', 'Achievement not found.');
+//       return res.redirect('/admin/achievements');
+//     }
+
+//     const achievement = achievementResults[0];
+
+//     // Fetch the students list
+//     connection.query(getStudents, (err2, students) => {
+//       if (err2) {
+//         req.flash('error', 'Failed to fetch student list.');
+//         return res.redirect('/admin/achievements');
+//       }
+
+//       // Render the edit page with achievement and students data
+//       res.render('Admin/Achievements(Kal)/editAchievement', { achievement, students });
+//     });
+//   });
+// });
+
+// // Route to delete an achievement
+// app.post('/admin/achievements/delete/:id',authUser , authAdmin, (req, res) => {
+//   const achievementId = req.params.id;
+
+//   // SQL query to delete the achievement from the database
+//   const deleteQuery = 'DELETE FROM student_achievements WHERE id = ?';
+
+//   connection.query(deleteQuery, [achievementId], (err, result) => {
+//     if (err) {
+//       console.error('Error deleting achievement:', err);
+//       req.flash('error', 'Failed to delete achievement');
+//       return res.redirect('/admin/achievements');
+//     }
+
+//     req.flash('success', 'Achievement deleted successfully');
+//     res.redirect('/admin/achievements');
+//   });
+// });
 
 
 // Display all schedules with optional searchc
@@ -1552,7 +1686,6 @@ app.get('/admin/meeting_schedule',authUser , authAdmin, (req, res) => {
   }
 
   connection.query(sql, params, (err, results) => {
-    console.log(results)
     if (err) throw err;
     res.render('Admin/Meeting_schedule(Jiayi)/meeting_schedule', {
       schedules: results,
@@ -1578,7 +1711,6 @@ app.get('/admin/schedule/new',authUser , authAdmin, (req, res) => {
         console.error(err);
         return res.status(500).send("Database query error");
       }
-      console.log(igs)
       // Render the form and pass IG categories and IGs to the template
       res.render('Admin/Meeting_schedule(Jiayi)/new_schedule', {
         categories, // Pass categories for IG categories dropdown
@@ -1885,13 +2017,13 @@ app.post('/student/request-join', authUser, (req, res) => {
 
 
 app.get('/admin/join-requests',authUser, (req, res) => {
-  const query = `
-   SELECT r.*, s.name AS student_name, ig.name AS ig_name
-FROM ig_join_requests r
-JOIN students s ON r.student_id = s.id
-JOIN interest_groups ig ON r.ig_id = ig.id
+ const query = `
+  SELECT r.*, u.fullname AS student_name, ig.name AS ig_name
+  FROM ig_join_requests r
+  JOIN users u ON r.student_id = u.id
+  JOIN interest_groups ig ON r.ig_id = ig.id
+`;
 
-  `;
 
   connection.query(query, (err, results) => {
     if (err) throw err;
