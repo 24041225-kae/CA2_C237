@@ -1971,12 +1971,12 @@ app.post('/admin/ig/:igId/members/delete/:memberId', authAdmin, (req, res) => {
 
 app.get('/admin/manage-members', authAdmin, (req, res) => {
   const query = `
-    SELECT m.id AS member_id, u.fullname AS student_name, u.email, ig.name AS ig_name, r.role_name, m.joined_date
-    FROM members m
-    JOIN users u ON m.student_id = u.id
-    JOIN interest_groups ig ON m.ig_id = ig.id
-    LEFT JOIN ig_roles r ON m.role_id = r.id
-    ORDER BY m.joined_date DESC
+    SELECT m.id AS member_id, u.fullname AS student_name, u.email, ig.name AS ig_name, m.joined_date
+FROM members m
+JOIN users u ON m.student_id = u.id
+JOIN interest_groups ig ON m.ig_id = ig.id
+ORDER BY m.joined_date DESC
+
   `;
 
   connection.query(query, (err, results) => {
