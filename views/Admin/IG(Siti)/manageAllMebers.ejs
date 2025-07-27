@@ -34,15 +34,10 @@
     table th {
       background-color: #0d6efd;
       color: white;
-      cursor: pointer;
     }
 
     tr:hover {
       background-color: #f5f9ff;
-    }
-
-    .btn-danger {
-      transition: background-color 0.3s;
     }
 
     .btn-danger:hover {
@@ -53,8 +48,17 @@
       margin-top: 25px;
     }
 
-    .search-box {
+    #searchInput {
+      width: 100%;
+      max-width: 400px;
       margin-bottom: 20px;
+    }
+
+    .no-results {
+      text-align: center;
+      color: #999;
+      font-style: italic;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -84,19 +88,22 @@
         <div class="alert alert-info text-center mb-0">No students are currently in this IG.</div>
       <% } else { %>
 
-        <input type="text" id="searchInput" class="form-control search-box" placeholder="🔍 Search by name, email, or username...">
+        <!-- 🔍 Search Input -->
+        <div class="d-flex justify-content-end mb-3">
+          <input type="text" id="searchInput" class="form-control" placeholder="Search by name, email or username...">
+        </div>
 
         <div class="table-responsive">
-          <table class="table table-bordered align-middle mb-0" id="membersTable">
+          <table id="membersTable" class="table table-bordered align-middle mb-0">
             <thead>
               <tr>
-                <th onclick="sortTable(0)">Full Name ⬍</th>
-                <th onclick="sortTable(1)">Email ⬍</th>
-                <th onclick="sortTable(2)">Username ⬍</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Username</th>
                 <th class="text-center">Actions</th>
               </tr>
             </thead>
-            <tbody id="memberBody">
+            <tbody>
               <% members.forEach(member => { %>
                 <tr>
                   <td><%= member.fullname %></td>
@@ -111,8 +118,11 @@
               <% }) %>
             </tbody>
           </table>
-          <div id="noResults" class="text-center mt-3 text-muted" style="display: none;">No matching members found.</div>
         </div>
+
+        <!-- 🚫 No Results Message -->
+        <p id="noResults" class="no-results d-none">No matching members found.</p>
+
       <% } %>
     </div>
 
@@ -124,55 +134,26 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Filter Function
-    document.getElementById("searchInput").addEventListener("keyup", function () {
-      const filter = this.value.toLowerCase();
-      const rows = document.querySelectorAll("#memberBody tr");
+    const searchInput = document.getElementById('searchInput');
+    const rows = document.querySelectorAll('#membersTable tbody tr');
+    const noResults = document.getElementById('noResults');
+
+    searchInput.addEventListener('keyup', () => {
+      const filter = searchInput.value.toLowerCase();
       let visibleCount = 0;
 
       rows.forEach(row => {
-        const cells = row.querySelectorAll("td");
-        const match = Array.from(cells).some(cell => cell.textContent.toLowerCase().includes(filter));
-        row.style.display = match ? "" : "none";
-        if (match) visibleCount++;
+        const text = row.innerText.toLowerCase();
+        if (text.includes(filter)) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
       });
 
-      document.getElementById("noResults").style.display = visibleCount === 0 ? "block" : "none";
+      noResults.classList.toggle('d-none', visibleCount > 0);
     });
-
-    // Sort Table Function
-    function sortTable(colIndex) {
-      const table = document.getElementById("membersTable");
-      let switching = true;
-      let dir = "asc";
-
-      while (switching) {
-        switching = false;
-        const rows = table.rows;
-        for (let i = 1; i < rows.length - 1; i++) {
-          let shouldSwitch = false;
-          const x = rows[i].getElementsByTagName("TD")[colIndex];
-          const y = rows[i + 1].getElementsByTagName("TD")[colIndex];
-          const xVal = x.textContent.toLowerCase();
-          const yVal = y.textContent.toLowerCase();
-
-          if ((dir === "asc" && xVal > yVal) || (dir === "desc" && xVal < yVal)) {
-            shouldSwitch = true;
-            break;
-          }
-        }
-
-        if (shouldSwitch) {
-          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-          switching = true;
-        } else {
-          if (dir === "asc") {
-            dir = "desc";
-            switching = true;
-          }
-        }
-      }
-    }
   </script>
 </body>
 </html>

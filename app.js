@@ -1929,7 +1929,7 @@ app.post('/admin/join-requests/:id/reject', authUser, authAdmin, (req, res) => {
 });
 
 
-// View members of a specific IG
+
 app.get('/admin/ig/:igId/members', authAdmin, (req, res) => {
   const { igId } = req.params;
   const query = `
@@ -1945,14 +1945,15 @@ app.get('/admin/ig/:igId/members', authAdmin, (req, res) => {
       return res.render('Admin/Error', { message: "Failed to load IG members." });
     }
 
-    res.render('Admin/ManageIG/members', {
+    res.render('Admin/IG(Siti)/member', {
       igId,
-      members: results
+      members: results,
+      success: req.flash("success"),
+      error: req.flash("error")
     });
   });
 });
 
-// DELETE route
 app.post('/admin/ig/:igId/members/delete/:memberId', authAdmin, (req, res) => {
   const { igId, memberId } = req.params;
 
@@ -1961,14 +1962,37 @@ app.post('/admin/ig/:igId/members/delete/:memberId', authAdmin, (req, res) => {
     if (err) {
       console.error("❌ Delete member error:", err);
       req.flash("error", "Failed to delete member.");
-      return res.redirect(`/admin/ig/${igId}/members`);
+    } else {
+      req.flash("success", "Member removed successfully.");
     }
-
-    req.flash("success", "Member removed successfully.");
     res.redirect(`/admin/ig/${igId}/members`);
   });
 });
 
+app.get('/admin/manage-members', authAdmin, (req, res) => {
+  const query = `
+    SELECT m.id AS member_id, u.fullname AS student_name, u.email, ig.name AS ig_name, r.role_name, m.joined_date
+    FROM members m
+    JOIN users u ON m.student_id = u.id
+    JOIN interest_groups ig ON m.ig_id = ig.id
+    LEFT JOIN ig_roles r ON m.role_id = r.id
+    ORDER BY m.joined_date DESC
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching IG members:', err);
+      req.flash('error', 'Failed to load IG members.');
+      return res.render('Admin/Members/manageAllMembers', { members: [] });
+    }
+
+    res.render('Admin/Members/manageAllMembers', {
+      members: results,
+      success: req.flash("success"),
+      error: req.flash("error")
+    });
+  });
+});
 
 
 
