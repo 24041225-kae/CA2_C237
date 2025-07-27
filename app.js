@@ -1986,7 +1986,7 @@ app.get('/admin/manage-members', authAdmin, (req, res) => {
       return res.render('Admin/Members/manageAllMembers', { members: [] });
     }
 
-    res.render('Admin/Members/manageAllMembers', {
+    res.render('Admin/IG(Siti)/manageAllMebers', {
       members: results,
       success: req.flash("success"),
       error: req.flash("error")
