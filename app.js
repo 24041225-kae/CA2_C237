@@ -1055,7 +1055,6 @@ app.post('/admin/manage-igs/delete/:id', authUser, authAdmin, (req, res) => {
   const deleteMembers = 'DELETE FROM members WHERE ig_id = ?';
   const deleteEvents = 'DELETE FROM events WHERE ig_id = ?';
   const deleteJoinRequests = 'DELETE FROM ig_join_requests WHERE ig_id = ?';
-  const deleteGallery = 'DELETE FROM galleries WHERE ig_id = ?';
 
   connection.query(deleteMembers, [id], (err) => {
     if (err) return res.send('Failed to delete members for IG');
@@ -1066,9 +1065,7 @@ app.post('/admin/manage-igs/delete/:id', authUser, authAdmin, (req, res) => {
       connection.query(deleteJoinRequests, [id], (err) => {
         if (err) return res.send('Failed to delete join requests for IG');
 
-        connection.query(deleteGallery, [id], (err) => {
-          if (err) return res.send('Failed to delete gallery items for IG');
-
+       
          
 
               // Now delete the IG itself
@@ -1084,7 +1081,6 @@ app.post('/admin/manage-igs/delete/:id', authUser, authAdmin, (req, res) => {
           });
         });
       });
-    });
 
 
 
