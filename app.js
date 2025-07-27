@@ -2244,7 +2244,7 @@ app.get('/students/gallery', authUser, (req, res) => {
   connection.query(galleryQuery, (err, galleries) => {
     if (err) {
       console.error('❌ Gallery fetch error:', err);
-      return res.render('Student/Gallary(Kal)/gallary', {
+      return res.render('Student/Gallary(Kal)/Gallary', {
         galleries: [],
         commentsByGallery: {}
       });
@@ -2253,7 +2253,7 @@ app.get('/students/gallery', authUser, (req, res) => {
     connection.query(commentsQuery, (err2, comments) => {
       if (err2) {
         console.error('❌ Comments fetch error:', err2);
-        return res.render('Student/Gallary(Kal)/gallary', {
+        return res.render('Student/Gallary(Kal)/Gallary', {
           galleries,
           commentsByGallery: {}
         });
@@ -2267,7 +2267,7 @@ app.get('/students/gallery', authUser, (req, res) => {
         commentsByGallery[comment.gallery_id].push(comment);
       });
 
-      res.render('Student/Gallary(Kal)/gallary', {
+      res.render('Student/Gallary(Kal)/Gallary', {
         galleries,
         commentsByGallery
       });
