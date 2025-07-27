@@ -1929,6 +1929,48 @@ app.post('/admin/join-requests/:id/reject', authUser, authAdmin, (req, res) => {
 });
 
 
+// View members of a specific IG
+app.get('/admin/ig/:igId/members', authAdmin, (req, res) => {
+  const { igId } = req.params;
+  const query = `
+    SELECT m.id AS member_id, u.fullname, u.email, u.username
+    FROM members m
+    JOIN users u ON m.student_id = u.id
+    WHERE m.ig_id = ?
+  `;
+
+  connection.query(query, [igId], (err, results) => {
+    if (err) {
+      console.error("❌ Fetch members error:", err);
+      return res.render('Admin/Error', { message: "Failed to load IG members." });
+    }
+
+    res.render('Admin/ManageIG/members', {
+      igId,
+      members: results
+    });
+  });
+});
+
+// DELETE route
+app.post('/admin/ig/:igId/members/delete/:memberId', authAdmin, (req, res) => {
+  const { igId, memberId } = req.params;
+
+  const deleteQuery = "DELETE FROM members WHERE id = ?";
+  connection.query(deleteQuery, [memberId], (err) => {
+    if (err) {
+      console.error("❌ Delete member error:", err);
+      req.flash("error", "Failed to delete member.");
+      return res.redirect(`/admin/ig/${igId}/members`);
+    }
+
+    req.flash("success", "Member removed successfully.");
+    res.redirect(`/admin/ig/${igId}/members`);
+  });
+});
+
+
+
 
 app.get('/student/profile', authUser, (req, res) => {
   const studentId = req.session?.user?.id;
