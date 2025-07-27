@@ -506,6 +506,8 @@ app.get('/login', (req, res) => {
     errorMsg: req.flash('errorMsg')
   });
 });
+
+
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -535,17 +537,45 @@ app.post('/login', (req, res) => {
           return res.redirect('/login');
         }
 
+        const userAgent = req.headers['user-agent'];
+        const loginTime = new Date();
+        const ip = req.ip;
+
         if (isMatch) {
+          // ✅ SUCCESSFUL LOGIN
           req.session.user = user;
+
+          // 🔄 Update login tracking fields
+          const updateLoginSQL = `
+            UPDATE users 
+            SET last_login = ?, last_browser = ?, login_success = 1, last_login_ip = ?
+            WHERE id = ?
+          `;
+          connection.query(updateLoginSQL, [loginTime, userAgent, ip, user.id], (updateErr) => {
+            if (updateErr) console.error('⚠️ Login tracking failed:', updateErr);
+          });
+
           const displayName = user.fullname || user.username || 'Student';
           req.flash('successMsg', `Welcome back, ${displayName}!`);
           return res.redirect(user.roles === 'admin' ? '/admin' : '/students/dashboard');
+
         } else {
+          // ❌ WRONG PASSWORD
+          const updateFailSQL = `
+            UPDATE users 
+            SET last_login = ?, last_browser = ?, login_success = 0
+            WHERE email = ?
+          `;
+          connection.query(updateFailSQL, [loginTime, userAgent, email], (failErr) => {
+            if (failErr) console.error('⚠️ Failed login tracking error:', failErr);
+          });
+
           req.flash('errorMsg', 'Invalid email or password.');
           return res.redirect('/login');
         }
       });
     } else {
+      // ❌ EMAIL NOT FOUND
       req.flash('errorMsg', 'Invalid email or password.');
       return res.redirect('/login');
     }
@@ -1510,168 +1540,6 @@ app.post('/admin/achievements/delete/:id', authUser, authAdmin, (req, res) => {
   });
 });
 
-// app.get('/admin/achievements',authUser , authAdmin, (req, res) => {
-//   const sql = `
-//   SELECT sa.*, u.fullname AS student_name
-//   FROM student_achievements sa
-//   JOIN users u ON sa.student_id = u.id
-//   WHERE u.roles = 'student'
-//   ORDER BY sa.date_awarded DESC
-// `;
-
-
-//   connection.query(sql, (err, results) => {
-//     if (err) {
-//       return res.status(500).send('Database error');
-//     }
-//     res.render('Admin/Achievements(Kal)/manageAchievements', { achievements: results });
-//   });
-// });
-
-// // Fetch student data for the select dropdown
-// app.get('/admin/achievements/add',authUser , authAdmin,(req, res) => {
-//   connection.query('SELECT id, name FROM students', (err, students) => {
-//     if (err) return res.status(500).send('Database error.');
-//     res.render('Admin/Achievements(Kal)/addAchievement', { students });
-//   });
-// });
-
-// // POST route for adding achievements
-// app.post('/admin/achievements/add',authUser , authAdmin, (req, res) => {
-//   const { student_id, title, description, date_awarded } = req.body;
-
-//   // SQL query to insert the achievement into the database
-//   const sql = `
-//     INSERT INTO student_achievements (student_id, title, description, date_awarded)
-//     VALUES (?, ?, ?, ?)
-//   `;
-
-//   // Execute the query with the provided data
-//   connection.query(sql, [student_id, title, description, date_awarded], (err, result) => {
-//     if (err) {
-//       console.error('Error inserting achievement:', err);
-//       return res.status(500).send('Database error.');
-//     }
-
-//     // Redirect to achievements dashboard after success
-//     res.redirect('/admin/achievements');
-//   });
-// });
-
-
-// // GET route to render the edit achievement page with existing achievement and students data
-// app.get('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
-//   const achievementId = req.params.id;
-
-//   // Query to get the achievement details based on the provided id
-//   const getAchievement = `
-//     SELECT * FROM student_achievements WHERE id = ?
-//   `;
-//   const getStudents = `
-//     SELECT id, name FROM students
-//   `;
-
-//   // Fetch the achievement details from the database
-//   connection.query(getAchievement, [achievementId], (err, achievementResults) => {
-//     if (err || achievementResults.length === 0) {
-//       req.flash('error', 'Achievement not found.');
-//       return res.redirect('/admin/achievements');
-//     }
-
-//     const achievement = achievementResults[0];
-
-//     // Fetch the students list
-//     connection.query(getStudents, (err2, students) => {
-//       if (err2) {
-//         req.flash('error', 'Failed to fetch student list.');
-//         return res.redirect('/admin/achievements');
-//       }
-
-//       // Render the edit page with achievement and students data
-//       res.render('Admin/Achievements(Kal)/editAchievement', { achievement, students });
-//     });
-//   });
-// });
-
-// // POST route to update the achievement details in the database
-// app.post('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
-//   const achievementId = req.params.id;
-//   const { student_id, title, description, date_awarded } = req.body;
-
-//   // Query to update the achievement details in the database
-//   const updateQuery = `
-//     UPDATE student_achievements
-//     SET student_id = ?, title = ?, description = ?, date_awarded = ?
-//     WHERE id = ?
-//   `;
-
-//   connection.query(updateQuery, [student_id, title, description, date_awarded, achievementId], (err, result) => {
-//     if (err) {
-//       console.error('Error updating achievement:', err);
-//       req.flash('error', 'Error updating achievement.');
-//       return res.redirect(`/admin/achievements/edit/${achievementId}`);
-//     }
-
-//     // Redirect back to the achievements list page after successful update
-//     req.flash('success', 'Achievement updated successfully.');
-//     res.redirect('/admin/achievements');
-//   });
-// });
-
-
-// // GET route to render the edit achievement page with existing achievement and students data
-// app.get('/admin/achievements/edit/:id',authUser , authAdmin, (req, res) => {
-//   const achievementId = req.params.id;
-
-//   // Query to get the achievement details based on the provided id
-//   const getAchievement = `
-//     SELECT * FROM student_achievements WHERE id = ?
-//   `;
-//   const getStudents = `
-//     SELECT id, name FROM students
-//   `;
-
-//   // Fetch the achievement details from the database
-//   connection.query(getAchievement, [achievementId], (err, achievementResults) => {
-//     if (err || achievementResults.length === 0) {
-//       req.flash('error', 'Achievement not found.');
-//       return res.redirect('/admin/achievements');
-//     }
-
-//     const achievement = achievementResults[0];
-
-//     // Fetch the students list
-//     connection.query(getStudents, (err2, students) => {
-//       if (err2) {
-//         req.flash('error', 'Failed to fetch student list.');
-//         return res.redirect('/admin/achievements');
-//       }
-
-//       // Render the edit page with achievement and students data
-//       res.render('Admin/Achievements(Kal)/editAchievement', { achievement, students });
-//     });
-//   });
-// });
-
-// // Route to delete an achievement
-// app.post('/admin/achievements/delete/:id',authUser , authAdmin, (req, res) => {
-//   const achievementId = req.params.id;
-
-//   // SQL query to delete the achievement from the database
-//   const deleteQuery = 'DELETE FROM student_achievements WHERE id = ?';
-
-//   connection.query(deleteQuery, [achievementId], (err, result) => {
-//     if (err) {
-//       console.error('Error deleting achievement:', err);
-//       req.flash('error', 'Failed to delete achievement');
-//       return res.redirect('/admin/achievements');
-//     }
-
-//     req.flash('success', 'Achievement deleted successfully');
-//     res.redirect('/admin/achievements');
-//   });
-// });
-
 
 // Display all schedules with optional searchc
 app.get('/admin/meeting_schedule',authUser , authAdmin, (req, res) => {
@@ -2355,7 +2223,10 @@ app.get('/students/achievements',authUser , (req, res) => {
     });
   });
 });
-app.get('/students/gallery', (req, res) => {
+
+
+
+app.get('/students/gallery', authUser, (req, res) => {
   const galleryQuery = `
     SELECT g.*, u.username AS student_name
     FROM galleries g
@@ -2372,32 +2243,39 @@ app.get('/students/gallery', (req, res) => {
 
   connection.query(galleryQuery, (err, galleries) => {
     if (err) {
-      console.error("❌ Gallery Query Error:", err);
-      return res.status(500).send("Error fetching gallery");
+      console.error('❌ Gallery fetch error:', err);
+      return res.render('Student/Gallary(Kal)/gallary', {
+        galleries: [],
+        commentsByGallery: {}
+      });
     }
 
-    connection.query(commentsQuery, (err, comments) => {
-      if (err) {
-        console.error("❌ Comments Query Error:", err);
-        return res.status(500).send("Error fetching comments");
+    connection.query(commentsQuery, (err2, comments) => {
+      if (err2) {
+        console.error('❌ Comments fetch error:', err2);
+        return res.render('Student/Gallary(Kal)/gallary', {
+          galleries,
+          commentsByGallery: {}
+        });
       }
 
-      // Group comments by gallery_id
-      const groupedComments = {};
-      comments.forEach(c => {
-        if (!groupedComments[c.gallery_id]) groupedComments[c.gallery_id] = [];
-        groupedComments[c.gallery_id].push(c);
+      const commentsByGallery = {};
+      comments.forEach(comment => {
+        if (!commentsByGallery[comment.gallery_id]) {
+          commentsByGallery[comment.gallery_id] = [];
+        }
+        commentsByGallery[comment.gallery_id].push(comment);
       });
 
-      res.render('Student/Gallary(Kal)/Gallary', {
+      res.render('Student/Gallary(Kal)/gallary', {
         galleries,
-        commentsByGallery: groupedComments
+        commentsByGallery
       });
     });
   });
 });
 
-app.post('/students/gallery/:id/comment', authUser ,(req, res) => {
+app.post('/students/gallery/:id/comment', authUser, (req, res) => {
   const gallery_id = req.params.id;
   const { comment } = req.body;
   const userId = req.session.user?.id;
@@ -2419,7 +2297,7 @@ app.post('/students/gallery/:id/comment', authUser ,(req, res) => {
 
   connection.query(insertSql, [gallery_id, userId, comment], (err) => {
     if (err) {
-      console.error('Comment insert error:', err);
+      console.error('❌ Comment insert error:', err);
       req.flash('error', 'Failed to post comment.');
       return res.redirect('/students/gallery');
     }
@@ -2428,6 +2306,9 @@ app.post('/students/gallery/:id/comment', authUser ,(req, res) => {
     res.redirect('/students/gallery');
   });
 });
+
+
+
 
 
 app.get('/students/schedule', authUser, (req, res) => {
@@ -2498,30 +2379,35 @@ app.post('/students/schedule/:id/rsvp', authUser, (req, res) => {
   });
 });
 
+// POST /request-ig
 
-app.post('/request-ig', authUser , (req, res) => {
+
+app.post('/request-ig', authUser, (req, res) => {
   const { ig_id, reason } = req.body;
-  const studentId = req.session.user.id; 
+  const userId = req.session.user?.id;
 
-  if (!ig_id || !reason) {
-    req.flash('error', 'Please fill in all fields.');
+  if (!ig_id || !reason || !userId) {
+    req.flash('errorMsg', 'All fields are required.');
     return res.redirect('/students/dashboard');
   }
 
-  const sql = `
-    INSERT INTO ig_join_requests (student_id, ig_id, reason, status, request_date)
-    VALUES (?, ?, ?, 'Pending', NOW())
-  `;
-  connection.query(sql, [studentId, ig_id, reason], (err, result) => {
+const sql = `INSERT INTO ig_join_requests (student_id, ig_id, reason, status, request_date)
+             VALUES (?, ?, ?, 'pending', NOW())`;
+
+
+  connection.query(sql, [userId, ig_id, reason], (err) => {
     if (err) {
-      console.error('Request IG Error:', err);
-      req.flash('error', 'Something went wrong. Please try again.');
-    } else {
-      req.flash('success', 'Your request has been submitted!');
+      console.error('Join IG request error:', err);
+      req.flash('errorMsg', 'Failed to submit request. Please try again.');
+      return res.redirect('/students/dashboard');
     }
+
+    req.flash('successMsg', 'Your request has been submitted successfully.');
     res.redirect('/students/dashboard');
   });
 });
+
+
 
 // ---------- Start Server ----------
 app.listen(3000, () => {
