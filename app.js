@@ -1983,7 +1983,7 @@ app.get('/admin/manage-members', authAdmin, (req, res) => {
     if (err) {
       console.error('❌ Error fetching IG members:', err);
       req.flash('error', 'Failed to load IG members.');
-      return res.render('Admin/Members/manageAllMembers', { members: [] });
+      return res.render('Admin/IG(Siti)/manageAllMebers', { members: [] });
     }
 
     res.render('Admin/IG(Siti)/manageAllMebers', {
