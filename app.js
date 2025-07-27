@@ -1355,11 +1355,13 @@ LIMIT 5;
 `);
 
 const recentJoinRequests = joinRequests.map(r => ({
+  id: r.id, // ✅ ADD THIS
   student: r.student_name,
   ig: r.ig_name,
   status: r.status,
-    formatted_date: r.request_date ? moment(r.request_date).format("MMMM D, YYYY h:mm A") : "No Date"
+  formatted_date: r.request_date ? moment(r.request_date).format("MMMM D, YYYY h:mm A") : "No Date"
 }));
+
 
 
     //  Recent Comments
@@ -1900,7 +1902,7 @@ app.get('/admin/join-requests',authUser, (req, res) => {
 });
 
 
-app.post('/admin/join-requests/:id/approve',authUser, authAdmin, (req, res) => {
+app.post('/admin/join-requests/:id/approve', authUser, authAdmin, (req, res) => {
   const requestId = req.params.id;
 
   const updateQuery = `UPDATE ig_join_requests SET status = 'approved' WHERE id = ?`;
@@ -1917,8 +1919,7 @@ app.post('/admin/join-requests/:id/approve',authUser, authAdmin, (req, res) => {
     });
   });
 });
-
-app.post('/admin/join-requests/:id/reject', authUser, authAdmin ,(req, res) => {
+app.post('/admin/join-requests/:id/reject', authUser, authAdmin, (req, res) => {
   const requestId = req.params.id;
   const query = `UPDATE ig_join_requests SET status = 'rejected' WHERE id = ?`;
   connection.query(query, [requestId], (err) => {
@@ -1926,6 +1927,7 @@ app.post('/admin/join-requests/:id/reject', authUser, authAdmin ,(req, res) => {
     res.redirect('/admin/join-requests');
   });
 });
+
 
 
 app.get('/student/profile', authUser, (req, res) => {
