@@ -1929,30 +1929,41 @@ app.post('/admin/join-requests/:id/reject', authUser, authAdmin, (req, res) => {
 });
 
 
+app.get('/admin/ig/:igId/members', (req, res) => {
+  const igId = req.params.igId;
 
-app.get('/admin/ig/:igId/members', authAdmin, (req, res) => {
-  const { igId } = req.params;
-  const query = `
-    SELECT m.id AS member_id, u.fullname, u.email, u.username
+  const sql = `
+    SELECT m.id AS member_id, u.fullname, u.email, u.username, ig.name AS igName
     FROM members m
     JOIN users u ON m.student_id = u.id
+    JOIN interest_groups ig ON m.ig_id = ig.id
     WHERE m.ig_id = ?
   `;
 
-  connection.query(query, [igId], (err, results) => {
+  connection.query(sql, [igId], (err, results) => {
     if (err) {
-      console.error("❌ Fetch members error:", err);
-      return res.render('Admin/Error', { message: "Failed to load IG members." });
+      console.error("❌ Error fetching IG members:", err);
+      return res.render('Admin/IG(Siti)/manageAllMebers', {
+        error: "Failed to fetch members.",
+        success: null,
+        members: [],
+        igId,
+        igName: null
+      });
     }
 
-    res.render('Admin/IG(Siti)/member', {
-      igId,
+    const igName = results.length > 0 ? results[0].igName : "Unknown IG";
+
+    res.render('Admin/IG(Siti)/manageAllMebers', {
       members: results,
-      success: req.flash("success"),
-      error: req.flash("error")
+      igId,
+      igName,
+      success: req.flash('success'),
+      error: req.flash('error')
     });
   });
 });
+
 
 app.post('/admin/ig/:igId/members/delete/:memberId', authAdmin, (req, res) => {
   const { igId, memberId } = req.params;
