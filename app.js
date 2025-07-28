@@ -217,18 +217,12 @@ connection.query(query, (err, eventList) => {
 });
 
 // GET route to fetch all gallery items
+app.get('/admin/gallery',authUser , authAdmin,(req, res) => {
 
-
-app.get('/admin/gallery', authUser, authAdmin, (req, res) => {
-  const query = `
-    SELECT 
-      g.id, g.title, g.media_url, g.caption, g.upload_date, g.created_at, 
-      ig.name AS ig_name,
-      u.name AS uploaded_by
-    FROM galleries AS g
-    LEFT JOIN interest_groups AS ig ON g.ig_id = ig.id
-    LEFT JOIN users AS u ON g.user_id = u.id
-  `;
+  const query = `SELECT g.id, g.title, g.media_url, g.caption, g.upload_date, g.created_at, 
+                        ig.name AS ig_name 
+                 FROM galleries AS g 
+                 LEFT JOIN interest_groups AS ig ON g.ig_id = ig.id `
 
   connection.query(query, (err, galleryList) => {
     if (err) {
@@ -237,15 +231,15 @@ app.get('/admin/gallery', authUser, authAdmin, (req, res) => {
         galleryList: [],
         successMsg: req.flash('success'),
         errorMsg: req.flash('error'),
-        user: req.session.user
+        user: req.session.user  // Pass user info for role checking
       });
     }
 
     res.render('Admin/Gallary(Kal)/ManageGallery', {
-      galleryList,
+      galleryList: galleryList,
       successMsg: req.flash('success'),
       errorMsg: req.flash('error'),
-      user: req.session.user
+      user: req.session.user  // Pass user info for role checking
     });
   });
 });
