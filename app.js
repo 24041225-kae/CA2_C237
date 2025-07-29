@@ -12,15 +12,15 @@ const moment = require('moment');
 const checkDiskSpace = require('check-disk-space').default;
 
 const connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "Group5@123?",
-  database: "igconnect",
-  // host: 'c237-all.mysql.database.azure.com',
-  // user: 'c237admin',
-  // password: 'c2372025!',
-  // port: 3306,
-  // database: 'igconnect',
+  // host: "localhost",
+  // user: "root",
+  // password: "Group5@123?",
+  // database: "igconnect",
+  host: 'c237-all.mysql.database.azure.com',
+  user: 'c237admin',
+  password: 'c2372025!',
+  port: 3306,
+  database: 'igconnect',
 
   // host: process.env.DB_HOST,
   // port: process.env.DB_PORT || 3306,
