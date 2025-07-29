@@ -17,11 +17,17 @@ const connection = mysql.createConnection({
   // user: "root",
   // password: "Group5@123?",
   // database: "igconnect",
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  host: 'c237-all.mysql.database.azure.com',
+  user: 'c237admin',
+  password: 'c2372025!',
+  port: 3306,
+  database: 'igconnect',
+
+  // host: process.env.DB_HOST,
+  // port: process.env.DB_PORT || 3306,
+  // user: process.env.DB_USER,
+  // password: process.env.DB_PASSWORD,
+  // database: process.env.DB_NAME,
 });
 
 connection.connect(err => {
